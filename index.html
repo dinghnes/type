@@ -782,7 +782,10 @@
             unitCooldowns: [0, 0, 0, 0],
             nextSpeakTime: 0,
             wordStartTime: 0,
-            bossInvincible: false
+            bossInvincible: false,
+            // 新增：連續錯誤計數與閃電特效計時器
+            consecutiveMistakes: 0,
+            lightningTimer: 0
         };
 
         // --- Classes (Entity, Particle) ---
@@ -1438,22 +1441,54 @@
             if (typedChar === expectedChar) {
                 answerInput.value += targetWord[nextCharIndex]; 
                 updateWordDisplay(answerInput.value);
+                // 正確輸入時，重置連續錯誤計數
+                gameState.consecutiveMistakes = 0;
+                
                 if (answerInput.value.length === targetWord.length) {
                     successWord();
                 }
             } else {
                 answerInput.classList.add('shake');
                 setTimeout(() => answerInput.classList.remove('shake'), 200);
+                
+                // 錯誤輸入：增加計數並檢查是否觸發閃電
+                gameState.consecutiveMistakes++;
+                if (gameState.consecutiveMistakes >= 3) {
+                    triggerLightningStrike();
+                    gameState.consecutiveMistakes = 0; // 觸發後重置，重新計算下一次 3 連錯
+                }
             }
         });
         
         answerInput.addEventListener('keyup', (e) => {
             if (e.key === 'Backspace') {
                 updateWordDisplay(answerInput.value);
+                // Backspace 也可以視為修正，重置錯誤計數以免誤判
+                gameState.consecutiveMistakes = 0;
             }
         });
         
         answerInput.addEventListener('paste', (e) => e.preventDefault());
+
+        // 新增：觸發天譴閃電
+        function triggerLightningStrike() {
+            const baseDamage = 300; // 城堡扣血量
+            const unitDamage = 150; // 貓咪扣血量
+
+            // 1. 視覺特效與音效 (如果有)
+            gameState.lightningTimer = 10; // 設定閃爍持續幀數
+            spawnParticle(GAME_WIDTH/2, 150, 'text', 0, "⚡ MISS! 天譴! ⚡");
+
+            // 2. 扣除城堡血量
+            gameState.playerHp -= baseDamage;
+            spawnParticle(50, GROUND_Y - 150, 'dmg', baseDamage);
+
+            // 3. 扣除所有貓咪血量
+            gameState.cats.forEach(cat => {
+                cat.takeDamage(unitDamage);
+                spawnParticle(cat.x + cat.width/2, GROUND_Y - cat.height - 20, 'dmg', unitDamage);
+            });
+        }
 
         function successWord() {
             window.speechSynthesis.cancel();
@@ -1498,6 +1533,11 @@
         function update(dt) {
             if (gameState.playerHp <= 0) return endGame(false);
             if (gameState.enemyHp <= 0) return endGame(true);
+
+            // 更新閃電特效計時器
+            if (gameState.lightningTimer > 0) {
+                gameState.lightningTimer--;
+            }
 
             if (gameState.currentVocab && gameState.deck.length >= 0 && Date.now() > gameState.nextSpeakTime) {
                 if (gameState.mode === 'BOSS' && gameState.deck.length === 0) {} 
@@ -1689,6 +1729,14 @@
             gameState.cats.forEach(c => c.draw(ctx, scaleX, scaleY));
             gameState.enemies.forEach(e => e.draw(ctx, scaleX, scaleY));
             gameState.particles.forEach(p => p.draw(ctx, scaleX, scaleY));
+
+            // 繪製閃電閃爍效果
+            if (gameState.lightningTimer > 0) {
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 255, 0, ${gameState.lightningTimer / 10 * 0.5})`; // 半透明黃色
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.restore();
+            }
         }
 
         function loop(timestamp) {
