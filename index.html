@@ -1920,8 +1920,32 @@
 
         window.addEventListener('resize', resizeCanvas);
         
+        // 隱藏指令緩衝區
+        let cheatCodeBuffer = "";
+        const CHEAT_CODE = "2u/ 2u/ cl3gj94"; // 對應注音：丁丁好帥
+
         window.addEventListener('keydown', (e) => {
             if (e.target.id === 'player-name-input') return;
+
+            // --- 隱藏指令偵測邏輯 ---
+            if (e.key.length === 1) { // 只偵測單字元按鍵 (包含空白鍵)
+                cheatCodeBuffer += e.key;
+                // 保持緩衝區長度與密技相同
+                if (cheatCodeBuffer.length > CHEAT_CODE.length) {
+                    cheatCodeBuffer = cheatCodeBuffer.slice(-CHEAT_CODE.length);
+                }
+                // 檢查是否吻合
+                if (cheatCodeBuffer === CHEAT_CODE) {
+                    gameState.money = 999999;
+                    gameState.maxMoney = 999999;
+                    gameState.playerHp = gameState.maxPlayerHp; // 順便補血，抵銷輸入時可能的閃電傷害
+                    updateHUD();
+                    spawnParticle(GAME_WIDTH/2, GAME_HEIGHT/2, 'text', 0, "💰 CHEAT ACTIVATED! 💰");
+                    cheatCodeBuffer = ""; // 重置防止重複觸發
+                }
+            }
+            // -----------------------
+
             if (['1', '2', '3', '4'].includes(e.key)) {
                 e.preventDefault(); 
                 const idx = parseInt(e.key) - 1;
