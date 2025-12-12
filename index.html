@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>西寧貓咪單字大戰爭 - 西寧英雄榜 (V4.2)</title>
+    <title>西寧貓咪單字大戰爭 - 西寧英雄榜 (V4)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Roboto+Mono:wght@500&display=swap');
 
@@ -1426,6 +1426,9 @@
         const answerInput = document.getElementById('answer-input'); // Added missing declaration
 
         answerInput.addEventListener('keydown', (e) => {
+            // 修正：忽略召喚貓咪的熱鍵 (1-4)，避免誤判為打錯字觸發閃電
+            if (['1', '2', '3', '4'].includes(e.key)) return;
+
             if (e.key.length > 1 || e.ctrlKey || e.metaKey) return; 
             e.preventDefault(); 
             if (gameState.deck.length === 0 && gameState.mode === 'BOSS') return; 
