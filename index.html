@@ -1143,9 +1143,17 @@
                 } else {
                     spawnParticle(particleX, this.y + this.height/2, 'pow');
                     target.takeDamage(actualDmg);
+                    
+                    // 新增：顯示扣血數字 (位於目標頭頂上方)
+                    spawnParticle(target.x + target.width/2, GROUND_Y - target.height - 20, 'dmg', actualDmg);
+
                     if(this.type === 'titan') {
                          gameState.enemies.forEach(e => {
-                             if(Math.abs(e.x - target.x) < 80) e.takeDamage(actualDmg);
+                             if(Math.abs(e.x - target.x) < 80) {
+                                 e.takeDamage(actualDmg);
+                                 // 新增：巨人範圍攻擊的扣血顯示
+                                 spawnParticle(e.x + e.width/2, GROUND_Y - e.height - 20, 'dmg', actualDmg);
+                             }
                          });
                     }
                 }
