@@ -1589,7 +1589,9 @@
                 if (p.life <= 0) gameState.particles.splice(i, 1);
             });
 
-            if (Math.random() < 0.02) addMoney(1);
+            // 移除：if (Math.random() < 0.02) addMoney(1); 
+            // 嚴格執行「只能靠打字賺錢」，不再隨機自動增加金錢
+            
             updateHUD();
             if (document.activeElement !== answerInput) {
                 answerInput.focus();
