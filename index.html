@@ -758,7 +758,7 @@
             { id: 0, name: 'basic', cost: 50, cd: 2000, color: '#fff' }, 
             { id: 1, name: 'tank', cost: 150, cd: 4000, color: '#ddd' }, 
             { id: 2, name: 'gross', cost: 300, cd: 6000, color: '#90CAF9' },
-            { id: 3, name: 'titan', cost: 600, cd: 12000, color: '#B39DDB' } 
+            { id: 3, name: 'titan', cost: 600, cd: 12000, color: '#B39DDB' }
         ];
 
         let gameState = {
@@ -780,7 +780,7 @@
             currentVocabIndex: -1, 
             deck: [], 
             difficulty: 1,
-            unitCooldowns: [0, 0, 0, 0],
+            unitCooldowns: [0, 0, 0, 0], // 回復為 4 格
             nextSpeakTime: 0,
             wordStartTime: 0,
             bossInvincible: false,
@@ -873,6 +873,9 @@
 
                 // 搜尋最近的敵人
                 targets.forEach(t => {
+                    // 修正：絕對忽略已經死亡(hp<=0)的目標，防止對屍體進行攻擊
+                    if (t.hp <= 0) return;
+
                     let dist = this.isEnemy ? (this.x - (t.x + t.width)) : (t.x - (this.x + this.width));
                     // 修正：將背後偵測範圍從 -50 放寬到 -200
                     // 這樣就算敵人重疊或稍微穿過我方，貓咪也能偵測到並進行攻擊
@@ -1551,19 +1554,25 @@
                 }
             }
 
-            gameState.cats.forEach((cat, i) => {
-                if (cat.hp <= 0) gameState.cats.splice(i, 1);
-                else cat.update(dt, gameState.enemies);
-            });
-            gameState.enemies.forEach((enemy, i) => {
-                if (enemy.hp <= 0) {
+            // 修正：將更新(Update)與移除(Remove)分離，避免迴圈索引錯誤導致的「幽靈貓」Bug
+            
+            // 1. 先更新所有單位行為
+            gameState.cats.forEach(cat => cat.update(dt, gameState.enemies));
+            gameState.enemies.forEach(enemy => enemy.update(dt, gameState.cats));
+
+            // 2. 統一清理死亡單位 (使用 filter 產生新陣列)
+            // 清理貓咪
+            gameState.cats = gameState.cats.filter(cat => cat.hp > 0);
+
+            // 清理敵人 (反向迴圈處理，因為要加分和特效，filter 較不直觀)
+            for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+                if (gameState.enemies[i].hp <= 0) {
+                    const enemy = gameState.enemies[i];
                     gameState.enemies.splice(i, 1);
                     gameState.score += 50;
                     spawnParticle(enemy.x, enemy.y - 20, 'score', 0, "+50");
-                } else {
-                    enemy.update(dt, gameState.cats);
                 }
-            });
+            }
 
             gameState.particles.forEach((p, i) => {
                 p.update();
