@@ -868,43 +868,52 @@
                     // 注意：這裡不 return，繼續執行下方的邊界檢查，防止被擊退進牆裡
                 }
 
-                let target = null;
-                let minDist = Infinity;
+                let targetUnit = null;
+                let minUnitDist = Infinity;
 
-                // 搜尋最近的敵人
+                // 1. 搜尋最近的單位
                 targets.forEach(t => {
-                    // 修正：絕對忽略已經死亡(hp<=0)的目標，防止對屍體進行攻擊
+                    // 絕對忽略屍體
                     if (t.hp <= 0) return;
 
                     let dist = this.isEnemy ? (this.x - (t.x + t.width)) : (t.x - (this.x + this.width));
-                    // 修正：將背後偵測範圍從 -50 放寬到 -200
-                    // 這樣就算敵人重疊或稍微穿過我方，貓咪也能偵測到並進行攻擊
-                    if (dist < minDist && dist >= -200) { 
-                        minDist = dist;
-                        target = t;
+                    
+                    // 擴大搜尋範圍 (-200)，確保即使重疊也能偵測到
+                    if (dist >= -200) { 
+                        if (dist < minUnitDist) {
+                            minUnitDist = dist;
+                            targetUnit = t;
+                        }
                     }
                 });
 
-                // 如果沒有單位目標，檢查是否攻擊基地
+                // 2. 決定攻擊目標 (修正卡牆邏輯)
                 const WALL_X = 100; // 城堡牆壁位置
+                let baseDist;
                 
-                if (!target) {
-                    let baseDist;
-                    if (this.isEnemy) {
-                        // 敵人攻擊我方基地：計算與牆壁 (X=100) 的距離
-                        baseDist = this.x - WALL_X;
-                    } else {
-                        // 我方攻擊敵人基地
-                        baseDist = (GAME_WIDTH - WALL_X) - (this.x + this.width);
-                    }
-                    
-                    if (baseDist <= this.range) target = "BASE";
+                if (this.isEnemy) {
+                    baseDist = this.x - WALL_X;
+                } else {
+                    baseDist = (GAME_WIDTH - WALL_X) - (this.x + this.width);
                 }
 
-                if ((target && minDist <= this.range) || target === "BASE") {
+                let finalTarget = null;
+
+                // 優先判定：如果最近的單位在攻擊射程內，就打單位
+                if (targetUnit && minUnitDist <= this.range) {
+                    finalTarget = targetUnit;
+                } 
+                // 次要判定：如果單位打不到(太遠或躲在牆後)，但城堡在射程內，就直接打城堡！
+                // 這行修正了解決敵人卡在門口不攻擊的問題
+                else if (baseDist <= this.range) {
+                    finalTarget = "BASE";
+                }
+
+                // 3. 執行動作
+                if (finalTarget) {
                     this.state = 'attack';
                     if (this.attackTimer <= 0) {
-                        this.attack(target);
+                        this.attack(finalTarget);
                         this.attackTimer = this.attackSpeed;
                     } else {
                         this.attackTimer--;
@@ -920,8 +929,7 @@
                     }
                 }
 
-                // --- 物理限制 (防止穿牆的核心修正) ---
-                // 無論狀態為何，強制限制座標，防止因為擊退或速度過快穿過城堡
+                // --- 物理限制 (防止穿牆) ---
                 if (this.isEnemy) {
                     // 敵人不能越過我方城堡牆壁 (X < 100)
                     if (this.x < WALL_X) this.x = WALL_X;
@@ -930,6 +938,8 @@
                     if (this.x + this.width > GAME_WIDTH - WALL_X) {
                         this.x = GAME_WIDTH - WALL_X - this.width;
                     }
+                    // 我方被擊退也不能退到畫面外 (負數)
+                    if (this.x < 0) this.x = 0;
                 }
             }
 
