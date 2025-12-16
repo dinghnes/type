@@ -200,6 +200,18 @@
             50% { opacity: 0.8; transform: scale(1.05); }
             100% { opacity: 1; transform: scale(1); }
         }
+        
+        /* Version Display */
+        #version-display {
+            position: fixed;
+            bottom: 5px;
+            right: 10px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+            z-index: 100;
+        }
     </style>
 </head>
 <body class="h-screen w-screen flex justify-center items-center select-none bg-black">
@@ -218,7 +230,7 @@
         <div class="relative z-10 text-center flex flex-col items-center max-w-4xl px-4">
             <div class="mb-2 text-yellow-500 font-bold tracking-[0.5em] text-sm uppercase">Typing RPG</div>
             <h1 class="text-5xl md:text-7xl mb-6 pixel-font hero-title leading-tight">
-                西寧國小<br>校園守護者
+                西寧<br>校園守護者
             </h1>
             
             <div class="bg-black/60 p-6 rounded-xl backdrop-blur-md border border-yellow-500/30 mb-8 w-full shadow-[0_0_20px_rgba(0,0,0,0.8)]">
@@ -309,6 +321,9 @@
         <div id="god-mode-indicator" class="cheat-indicator">GOD MODE ON</div>
     </div>
 
+    <!-- Version Display -->
+    <div id="version-display">V1.2</div>
+
     <!-- UI Overlay: Upgrade Menu -->
     <div id="upgrade-menu" class="ui-layer bg-black/95 z-40 hidden pointer-events-auto backdrop-blur">
         <h2 class="text-4xl text-yellow-500 mb-2 font-bold pixel-font">戰利品選擇</h2>
@@ -343,6 +358,10 @@
     </div>
 
     <script>
+        // --- Version Control ---
+        const GAME_VERSION = "V1.2";
+        document.getElementById('version-display').innerText = GAME_VERSION;
+
         // --- Visual Effects for Start Screen ---
         function initStartScreenEffects() {
             const container = document.getElementById('fire-container');
