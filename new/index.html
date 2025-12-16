@@ -215,23 +215,41 @@
         <!-- Fire Particles Container (Populated via JS) -->
         <div id="fire-container" class="absolute w-full h-full pointer-events-none"></div>
 
-        <div class="relative z-10 text-center flex flex-col items-center">
+        <div class="relative z-10 text-center flex flex-col items-center max-w-4xl px-4">
             <div class="mb-2 text-yellow-500 font-bold tracking-[0.5em] text-sm uppercase">Typing RPG</div>
             <h1 class="text-5xl md:text-7xl mb-6 pixel-font hero-title leading-tight">
-                西寧<br>校園守護者
+                西寧國小<br>校園守護者
             </h1>
             
-            <div class="bg-black/50 p-6 rounded-lg backdrop-blur-sm border border-white/10 mb-8 max-w-md">
-                <p class="text-gray-200 mb-2 text-lg font-bold">勇者召集令！</p>
-                <p class="text-gray-400 text-sm">魔物正在進攻博學、群英與耕心樓。<br>唯有精準的鍵盤操作能擊退它們。</p>
-                <p class="text-red-400 text-sm mt-2 font-bold animate-pulse">注意：打錯字會受到反噬傷害！</p>
+            <div class="bg-black/60 p-6 rounded-xl backdrop-blur-md border border-yellow-500/30 mb-8 w-full shadow-[0_0_20px_rgba(0,0,0,0.8)]">
+                <h2 class="text-2xl text-yellow-400 font-bold mb-3 pixel-font drop-shadow-md">⚠️ 校園緊急警報 ⚠️</h2>
+                <div class="flex flex-col md:flex-row gap-6 items-center">
+                    <div class="text-left flex-1">
+                        <p class="text-gray-200 mb-3 leading-relaxed text-lg">
+                            來自異次元的 <span class="text-red-400 font-bold text-xl">字母魔軍</span> 正在入侵！<br>
+                            博學、群英與耕心樓岌岌可危...
+                        </p>
+                        <p class="text-blue-300 mb-4 leading-relaxed">
+                            唯有喚醒你指尖的 <span class="text-yellow-300 font-bold text-xl">「鍵盤神力」</span>，<br>
+                            才能擊碎落下的符文，拯救大家！
+                        </p>
+                    </div>
+                    <div class="text-sm text-gray-400 bg-black/40 p-4 rounded-lg border border-white/10 w-full md:w-auto text-left">
+                        <p class="mb-2">⚔️ <span class="text-white font-bold">攻擊：</span> 敲擊對應字母消滅敵人</p>
+                        <p class="mb-2">🛡️ <span class="text-white font-bold">升級：</span> 每層過關可獲得強力祝福</p>
+                        <p class="text-red-400 font-bold mt-2 animate-pulse flex items-center">
+                            <span class="text-xl mr-2">☠️</span> 警告：按錯鍵會受到反噬傷害！
+                        </p>
+                    </div>
+                </div>
+                <p class="text-center text-yellow-500 mt-4 font-bold text-lg pixel-font">你準備好成為傳說中的鍵盤勇者了嗎？</p>
             </div>
 
             <div class="flex flex-col md:flex-row gap-6">
-                <button onclick="startGame('story')" class="rpg-btn btn-story px-8 py-4 text-white font-bold rounded pixel-font text-lg flex items-center justify-center gap-3 w-64">
+                <button onclick="startGame('story')" class="rpg-btn btn-story px-8 py-4 text-white font-bold rounded pixel-font text-lg flex items-center justify-center gap-3 w-64 hover:scale-105 transition-transform">
                     <span>⚔️</span> 劇情戰役
                 </button>
-                <button onclick="startGame('infinite')" class="rpg-btn btn-infinite px-8 py-4 text-white font-bold rounded pixel-font text-lg flex items-center justify-center gap-3 w-64">
+                <button onclick="startGame('infinite')" class="rpg-btn btn-infinite px-8 py-4 text-white font-bold rounded pixel-font text-lg flex items-center justify-center gap-3 w-64 hover:scale-105 transition-transform">
                     <span>🔥</span> 無限挑戰
                 </button>
             </div>
