@@ -136,6 +136,24 @@
         }
 
         .hidden { display: none !important; }
+        
+        /* Boss Health Bar Style */
+        .boss-hp-container {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .boss-hp-container.visible {
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="h-screen w-screen flex justify-center items-center select-none bg-black">
@@ -198,6 +216,15 @@
                 <div class="text-blue-400 pixel-font text-xs">SCORE</div>
                 <div id="score-display" class="text-3xl font-bold pixel-font text-white drop-shadow-md">0</div>
             </div>
+        </div>
+        
+        <!-- Boss HP Bar (Hidden by default) -->
+        <div id="boss-hud" class="boss-hp-container pointer-events-none">
+            <h3 class="text-red-500 font-bold pixel-font text-xl mb-1 drop-shadow-md tracking-widest animate-pulse">⚠️ BOSS 降臨</h3>
+            <div class="w-full h-8 bg-gray-900 border-4 border-red-900 rounded relative overflow-hidden">
+                <div id="boss-hp-bar" class="h-full bg-gradient-to-r from-red-700 to-red-500 transition-all duration-200" style="width: 100%;"></div>
+            </div>
+            <div class="text-xs text-red-300 mt-1">摧毀魔王的 5 個部位以獲勝！</div>
         </div>
         
         <!-- Level Up Notification -->
@@ -271,7 +298,6 @@
             const now = audioCtx.currentTime;
             
             if (type === 'shoot') {
-                // Laser/Sword sound
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(600, now);
                 osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
@@ -279,8 +305,25 @@
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                 osc.start(now);
                 osc.stop(now + 0.15);
+            } else if (type === 'boss_hit') {
+                // Heavier hit sound
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.linearRampToValueAtTime(50, now + 0.1);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'boss_part_break') {
+                // Explosion sound
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.exponentialRampToValueAtTime(10, now + 0.5);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
             } else if (type === 'miss') {
-                // Error buzz
                 osc.type = 'square';
                 osc.frequency.setValueAtTime(150, now);
                 osc.frequency.linearRampToValueAtTime(100, now + 0.1);
@@ -297,7 +340,6 @@
                 osc.start(now);
                 osc.stop(now + 0.2);
             } else if (type === 'damage') {
-                osc.type = 'lowshelf'; // simulated with triangle
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(100, now);
                 osc.frequency.linearRampToValueAtTime(50, now + 0.3);
@@ -305,6 +347,14 @@
                 gain.gain.linearRampToValueAtTime(0, now + 0.3);
                 osc.start(now);
                 osc.stop(now + 0.3);
+            } else if (type === 'boss_spawn') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(80, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 1.5);
+                gain.gain.setValueAtTime(0.6, now);
+                gain.gain.linearRampToValueAtTime(0, now + 1.5);
+                osc.start(now);
+                osc.stop(now + 1.5);
             }
         }
 
@@ -314,37 +364,65 @@
                 name: "第一關：西寧博學樓", 
                 chars: "ASDFGHJKL", 
                 desc: "中排鍵位 - 骷髏兵入侵",
-                color: "#3b82f6", // Blue
+                color: "#3b82f6", 
                 enemySpeedBase: 1.5,
                 spawnRate: 1200,
-                targetKills: 20
+                targetKills: 20,
+                bossParts: [
+                    { id: 'head', word: 'FLASH', label: '頭部', offset: {x: 0, y: -80}, w: 100, h: 60, color: '#facc15' },
+                    { id: 'l_arm', word: 'ASK', label: '左手', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#60a5fa' },
+                    { id: 'r_arm', word: 'ADD', label: '右手', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#60a5fa' },
+                    { id: 'l_leg', word: 'SAD', label: '左腳', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#3b82f6' },
+                    { id: 'r_leg', word: 'GLAD', label: '右腳', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#3b82f6' }
+                ]
             },
             { 
                 name: "第二關：西寧群英樓", 
                 chars: "QWERTYUIOP", 
                 desc: "上排鍵位 - 蝙蝠來襲",
-                color: "#ef4444", // Red
+                color: "#ef4444", 
                 enemySpeedBase: 1.8,
                 spawnRate: 1000,
-                targetKills: 25
+                targetKills: 25,
+                bossParts: [
+                    { id: 'head', word: 'POWER', label: '頭部', offset: {x: 0, y: -80}, w: 100, h: 60, color: '#f87171' },
+                    { id: 'l_arm', word: 'TOP', label: '左手', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#ef4444' },
+                    { id: 'r_arm', word: 'POP', label: '右手', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#ef4444' },
+                    { id: 'l_leg', word: 'OUT', label: '左腳', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#dc2626' },
+                    { id: 'r_leg', word: 'TRY', label: '右腳', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#dc2626' }
+                ]
             },
             { 
                 name: "第三關：西寧耕心樓", 
                 chars: "ZXCVBNM", 
                 desc: "下排鍵位 - 史萊姆突擊",
-                color: "#22c55e", // Green
+                color: "#22c55e", 
                 enemySpeedBase: 2.0,
                 spawnRate: 900,
-                targetKills: 25
+                targetKills: 25,
+                bossParts: [
+                    { id: 'head', word: 'ZXCV', label: '頭部', offset: {x: 0, y: -80}, w: 100, h: 60, color: '#4ade80' },
+                    { id: 'l_arm', word: 'VBNM', label: '左手', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#22c55e' },
+                    { id: 'r_arm', word: 'MNBV', label: '右手', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#22c55e' },
+                    { id: 'l_leg', word: 'VCXZ', label: '左腳', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#16a34a' },
+                    { id: 'r_leg', word: 'BCNM', label: '右腳', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#16a34a' }
+                ]
             },
             { 
                 name: "魔王關卡：全校守護戰", 
                 chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 
                 desc: "全軍出擊 - 最終決戰",
-                color: "#a855f7", // Purple
+                color: "#a855f7", 
                 enemySpeedBase: 2.5,
                 spawnRate: 600,
-                targetKills: 50,
+                targetKills: 40,
+                bossParts: [
+                    { id: 'head', word: 'VICTORY', label: '核心', offset: {x: 0, y: -90}, w: 120, h: 70, color: '#d8b4fe' },
+                    { id: 'l_arm', word: 'BRAVE', label: '勇氣', offset: {x: -140, y: -20}, w: 90, h: 90, color: '#a855f7' },
+                    { id: 'r_arm', word: 'FIGHT', label: '戰鬥', offset: {x: 140, y: -20}, w: 90, h: 90, color: '#a855f7' },
+                    { id: 'l_leg', word: 'GLORY', label: '榮耀', offset: {x: -70, y: 130}, w: 70, h: 110, color: '#7e22ce' },
+                    { id: 'r_leg', word: 'HONOR', label: '榮譽', offset: {x: 70, y: 130}, w: 70, h: 110, color: '#7e22ce' }
+                ],
                 isBoss: true
             }
         ];
@@ -370,6 +448,9 @@
             projectiles: [],
             spawnTimer: 0,
             killsInStage: 0,
+            
+            // Boss
+            boss: null, // { x, y, parts: [] }
             
             // Player Stats
             hp: 100,
@@ -415,6 +496,7 @@
                 projectiles: [],
                 spawnTimer: 0,
                 killsInStage: 0,
+                boss: null,
                 hp: 100,
                 maxHp: 100,
                 scoreMult: 1.0,
@@ -429,12 +511,13 @@
             gameState.killsInStage = 0;
             gameState.enemies = [];
             gameState.projectiles = [];
+            gameState.boss = null;
+            document.getElementById('boss-hud').classList.remove('visible');
             
             const stage = LEVELS[idx];
             document.getElementById('stage-name').innerText = stage.name;
             document.getElementById('stage-name').style.color = stage.color;
             
-            // Show stage title briefly
             createFloatingText(canvas.width/2, canvas.height/2, stage.name, stage.color, 40);
         }
 
@@ -455,35 +538,80 @@
         function update(dt) {
             const stage = LEVELS[gameState.currentStageIdx];
 
-            // Spawning
-            gameState.spawnTimer -= dt;
-            if (gameState.spawnTimer <= 0) {
-                spawnEnemy(stage);
-                let ramp = Math.min(0.5, gameState.killsInStage / 50); 
-                gameState.spawnTimer = stage.spawnRate * (1 - ramp); 
-            }
-
-            // Update Enemies
-            for (let i = gameState.enemies.length - 1; i >= 0; i--) {
-                let e = gameState.enemies[i];
-                e.y += e.speed * gameState.speedMult * (dt / 16);
-
-                // Hit Floor
-                if (e.y > canvas.height) {
-                    takeDamage(15); // Floor damage
-                    gameState.enemies.splice(i, 1);
+            // --- Boss Logic ---
+            if (gameState.boss) {
+                // Boss Descends
+                gameState.boss.y += (0.15 * gameState.speedMult) * (dt / 16);
+                
+                // Boss hits player (Game Over or Huge Damage)
+                // Determine lowest point of the boss (approx)
+                if (gameState.boss.y > canvas.height - 150) {
+                    takeDamage(100); 
                     shakeScreen();
+                }
+
+                // Check if ALL parts are destroyed
+                const allDestroyed = gameState.boss.parts.every(p => p.isDestroyed);
+                
+                if (allDestroyed) {
+                    // Boss Defeated Animation
+                    createParticles(gameState.boss.x, gameState.boss.y, '#ffd700');
+                    createParticles(gameState.boss.x - 50, gameState.boss.y + 50, '#ffd700');
+                    createParticles(gameState.boss.x + 50, gameState.boss.y + 50, '#ffd700');
+                    
+                    gameState.score += 2000 * gameState.scoreMult;
+                    gameState.boss = null;
+                    document.getElementById('boss-hud').classList.remove('visible');
+                    
+                    setTimeout(() => {
+                         if (gameState.currentStageIdx >= LEVELS.length - 1) {
+                            victory();
+                        } else {
+                            levelComplete();
+                        }
+                    }, 1000);
+                }
+
+                // Clean up remaining enemies
+                for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+                    gameState.enemies[i].y += 10; 
+                     if (gameState.enemies[i].y > canvas.height) gameState.enemies.splice(i, 1);
+                }
+
+            } else {
+                // --- Normal Enemy Spawning ---
+                if (gameState.killsInStage < stage.targetKills) {
+                    gameState.spawnTimer -= dt;
+                    if (gameState.spawnTimer <= 0) {
+                        spawnEnemy(stage);
+                        let ramp = Math.min(0.5, gameState.killsInStage / 50); 
+                        gameState.spawnTimer = stage.spawnRate * (1 - ramp); 
+                    }
+                } else if (gameState.enemies.length === 0) {
+                    spawnBoss(stage);
+                }
+
+                // Update Enemies
+                for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+                    let e = gameState.enemies[i];
+                    e.y += e.speed * gameState.speedMult * (dt / 16);
+
+                    if (e.y > canvas.height) {
+                        takeDamage(15);
+                        gameState.enemies.splice(i, 1);
+                        shakeScreen();
+                    }
                 }
             }
 
             // Update Projectiles
             for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
                 let p = gameState.projectiles[i];
-                p.x = lerp(p.x, p.targetX, 0.25); // Faster projectiles
+                p.x = lerp(p.x, p.targetX, 0.25);
                 p.y = lerp(p.y, p.targetY, 0.25);
                 
-                if (Math.abs(p.x - p.targetX) < 10 && Math.abs(p.y - p.targetY) < 10) {
-                    createParticles(p.targetX, p.targetY, LEVELS[gameState.currentStageIdx].color);
+                if (Math.abs(p.x - p.targetX) < 20 && Math.abs(p.y - p.targetY) < 20) {
+                    createParticles(p.targetX, p.targetY, p.color || '#fbbf24');
                     gameState.projectiles.splice(i, 1);
                 }
             }
@@ -495,15 +623,6 @@
                 p.y += p.vy;
                 p.life -= dt;
                 if (p.life <= 0) gameState.particles.splice(i, 1);
-            }
-
-            // Check Stage Clear
-            if (gameState.killsInStage >= stage.targetKills && gameState.enemies.length === 0) {
-                if (gameState.currentStageIdx >= LEVELS.length - 1) {
-                    victory();
-                } else {
-                    levelComplete();
-                }
             }
         }
 
@@ -519,15 +638,78 @@
             });
         }
 
+        function spawnBoss(stage) {
+            playSound('boss_spawn');
+            
+            // Clone parts to avoid modifying config
+            const parts = stage.bossParts.map(p => ({
+                ...p,
+                typedIndex: 0,
+                isDestroyed: false
+            }));
+
+            gameState.boss = {
+                x: canvas.width / 2,
+                y: 150,
+                parts: parts
+            };
+            
+            // Show Boss HUD
+            const bossHud = document.getElementById('boss-hud');
+            bossHud.classList.add('visible');
+            updateBossHUD();
+            
+            createFloatingText(canvas.width/2, canvas.height/2, "BOSS WARNING!", "#ff0000", 60);
+        }
+
         function handleInput(e) {
             if (gameState.status !== 'PLAYING') return;
-            
-            // Ignore non-character keys (like shift, ctrl) to prevent accidental damage
             if (e.key.length > 1) return;
-
             const key = e.key.toUpperCase();
             
-            // Find target (lowest enemy with matching key)
+            // --- Boss Combat ---
+            if (gameState.boss) {
+                let hitAny = false;
+                
+                // Check all alive parts
+                gameState.boss.parts.forEach(part => {
+                    if (part.isDestroyed) return;
+                    
+                    const neededChar = part.word[part.typedIndex];
+                    if (key === neededChar) {
+                        hitAny = true;
+                        part.typedIndex++;
+                        
+                        // Visuals
+                        const targetX = gameState.boss.x + part.offset.x;
+                        const targetY = gameState.boss.y + part.offset.y;
+                        shootProjectile(targetX, targetY, part.color);
+                        playSound('boss_hit');
+
+                        // Check if part destroyed
+                        if (part.typedIndex >= part.word.length) {
+                            part.isDestroyed = true;
+                            playSound('boss_part_break');
+                            createParticles(targetX, targetY, part.color);
+                            createFloatingText(targetX, targetY, `${part.label} 破壞!`, '#fff', 20);
+                            gameState.score += 500 * gameState.scoreMult;
+                            shakeScreen();
+                        }
+                    }
+                });
+
+                if (hitAny) {
+                    updateBossHUD();
+                } else {
+                    // Miss Boss
+                    takeDamage(5);
+                    playSound('miss');
+                    createFloatingText(canvas.width/2, canvas.height/2 + 200, "MISS! -5", "#ff0000", 30, true);
+                }
+                return;
+            }
+
+            // --- Normal Combat ---
             let targetIdx = -1;
             let maxY = -1000;
 
@@ -541,7 +723,6 @@
             });
 
             if (targetIdx !== -1) {
-                // HIT
                 const enemy = gameState.enemies[targetIdx];
                 shootProjectile(enemy.x, enemy.y);
                 gameState.enemies.splice(targetIdx, 1);
@@ -550,35 +731,32 @@
                 playSound('shoot');
                 updateHUD();
             } else {
-                // MISS (Penalty Added)
-                takeDamage(5); // Deduct 5 HP for wrong key
+                takeDamage(5);
                 playSound('miss');
                 createFloatingText(canvas.width/2, canvas.height/2 + 100, "MISS! -5", "#ff0000", 30, true);
                 shakeScreen();
             }
         }
 
-        function shootProjectile(tx, ty) {
+        function shootProjectile(tx, ty, color = '#fbbf24') {
             gameState.projectiles.push({
                 x: canvas.width / 2,
                 y: canvas.height,
                 targetX: tx,
-                targetY: ty
+                targetY: ty,
+                color: color
             });
         }
 
         function takeDamage(amount) {
-            // Shield Logic
-            if (gameState.shield && amount > 5) { // Only use shield for big damage (floor hits), not typos
+            if (gameState.shield && amount > 5) {
                 gameState.shield = false;
                 playSound('powerup');
                 createFloatingText(canvas.width/2, canvas.height/2, "SHIELD BLOCKED!", "#60a5fa", 30);
                 return;
-            } else if (gameState.shield && amount <= 5) {
-                 // Shield doesn't block typos, but visual feedback is different
             }
 
-            if (amount > 5) playSound('damage'); // Only play heavy damage sound for floor hits
+            if (amount > 5) playSound('damage');
 
             gameState.hp -= amount;
             if (gameState.hp <= 0) {
@@ -658,44 +836,109 @@
 
         // --- Drawing ---
         function draw() {
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.4)'; // Dark blue trail
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.4)'; 
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             const stage = LEVELS[gameState.currentStageIdx];
 
-            // Draw Enemies (Styled as falling blocks/runes)
+            // --- Draw Boss ---
+            if (gameState.boss) {
+                const bx = gameState.boss.x;
+                const by = gameState.boss.y;
+                
+                // Boss Connector Lines (Body frame)
+                ctx.strokeStyle = '#4b5563';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                gameState.boss.parts.forEach(part => {
+                    if (!part.isDestroyed) {
+                        ctx.moveTo(bx, by); // From center
+                        ctx.lineTo(bx + part.offset.x, by + part.offset.y);
+                    }
+                });
+                ctx.stroke();
+
+                // Draw Central Body Core (Just decoration)
+                ctx.fillStyle = '#1f2937';
+                ctx.beginPath();
+                ctx.arc(bx, by, 30, 0, Math.PI*2);
+                ctx.fill();
+                ctx.strokeStyle = stage.color;
+                ctx.stroke();
+
+                // Draw Parts
+                gameState.boss.parts.forEach(part => {
+                    if (part.isDestroyed) return;
+
+                    const px = bx + part.offset.x;
+                    const py = by + part.offset.y;
+
+                    // Part Shape
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = part.color;
+                    ctx.fillStyle = '#1f2937';
+                    ctx.fillRect(px - part.w/2, py - part.h/2, part.w, part.h);
+                    
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = part.color;
+                    ctx.strokeRect(px - part.w/2, py - part.h/2, part.w, part.h);
+                    
+                    ctx.shadowBlur = 0;
+
+                    // Word Rendering
+                    ctx.font = "bold 20px 'Press Start 2P'";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    
+                    // Center text in block
+                    const charWidth = 16;
+                    const startX = px - (part.word.length * charWidth) / 2 + 8;
+
+                    for (let i = 0; i < part.word.length; i++) {
+                        const char = part.word[i];
+                        const cx = startX + (i * charWidth);
+                        
+                        if (i < part.typedIndex) {
+                            ctx.fillStyle = "#22c55e"; // Green for typed
+                            ctx.fillText(char, cx, py);
+                        } else if (i === part.typedIndex) {
+                            ctx.fillStyle = "#fbbf24"; // Yellow for current
+                            ctx.font = "bold 24px 'Press Start 2P'";
+                            ctx.fillText(char, cx, py);
+                            ctx.font = "bold 20px 'Press Start 2P'";
+                        } else {
+                            ctx.fillStyle = "#9ca3af"; // Gray for pending
+                            ctx.fillText(char, cx, py);
+                        }
+                    }
+                });
+            }
+
+            // Draw Enemies
             ctx.font = "bold 32px 'Noto Sans TC'";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
 
             gameState.enemies.forEach(e => {
-                // Glow effect
                 ctx.shadowBlur = 15;
                 ctx.shadowColor = stage.color;
-                
-                // Background shape
                 ctx.fillStyle = "#1e293b";
                 ctx.beginPath();
                 ctx.roundRect(e.x - 25, e.y - 25, 50, 50, 10);
                 ctx.fill();
-                
-                // Border
                 ctx.lineWidth = 3;
                 ctx.strokeStyle = stage.color;
                 ctx.stroke();
-
-                // Text
                 ctx.fillStyle = "#ffffff";
                 ctx.fillText(e.char, e.x, e.y + 2);
-                
                 ctx.shadowBlur = 0;
             });
 
             // Draw Projectiles
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = "#fbbf24";
-            ctx.fillStyle = "#fbbf24";
             gameState.projectiles.forEach(p => {
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = p.color;
+                ctx.fillStyle = p.color;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
                 ctx.fill();
@@ -715,15 +958,15 @@
 
         // --- Helpers ---
         function createParticles(x, y, color) {
-            for (let i = 0; i < 12; i++) {
+            for (let i = 0; i < 15; i++) {
                 gameState.particles.push({
                     x: x,
                     y: y,
-                    vx: (Math.random() - 0.5) * 15,
-                    vy: (Math.random() - 0.5) * 15,
-                    life: 500,
+                    vx: (Math.random() - 0.5) * 20,
+                    vy: (Math.random() - 0.5) * 20,
+                    life: 600,
                     color: color,
-                    size: Math.random() * 5 + 2
+                    size: Math.random() * 6 + 2
                 });
             }
         }
@@ -742,6 +985,7 @@
                 el.style.fontWeight = 'bold';
                 el.style.textShadow = '0 0 10px black';
                 el.style.transition = 'all 1s ease-out';
+                el.style.zIndex = 45; 
             } else {
                  el.style.left = x + 'px';
                  el.style.top = y + 'px';
@@ -772,10 +1016,36 @@
             }
 
             const stage = LEVELS[gameState.currentStageIdx];
-            // Fix division by zero if starts empty
-            const progress = stage.targetKills > 0 ? Math.min(100, Math.floor((gameState.killsInStage / stage.targetKills) * 100)) : 0;
-            document.getElementById('progress-text').innerText = progress + '%';
+            
+            let progress = 0;
+            if (gameState.boss) {
+                progress = 100;
+                document.getElementById('progress-text').innerText = "BOSS";
+                document.getElementById('progress-text').classList.add('text-red-500', 'animate-pulse');
+            } else {
+                progress = stage.targetKills > 0 ? Math.min(100, Math.floor((gameState.killsInStage / stage.targetKills) * 100)) : 0;
+                document.getElementById('progress-text').innerText = progress + '%';
+                document.getElementById('progress-text').classList.remove('text-red-500', 'animate-pulse');
+            }
+            
             document.getElementById('score-display').innerText = gameState.score;
+        }
+
+        function updateBossHUD() {
+            if (!gameState.boss) return;
+            
+            // Calculate total progress across all parts
+            let totalChars = 0;
+            let typedChars = 0;
+            
+            gameState.boss.parts.forEach(p => {
+                totalChars += p.word.length;
+                typedChars += p.typedIndex;
+            });
+            
+            const hpPercent = ((totalChars - typedChars) / totalChars) * 100;
+            const bar = document.getElementById('boss-hp-bar');
+            bar.style.width = hpPercent + '%';
         }
 
         function shakeScreen() {
