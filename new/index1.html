@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>西寧校園守護者 - 現代防衛戰</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+        :root {
+            --primary-glow: 0 0 20px rgba(59, 130, 246, 0.6);
+            --danger-glow: 0 0 20px rgba(239, 68, 68, 0.6);
+            --gold-glow: 0 0 25px rgba(234, 179, 8, 0.6);
+        }
+
+        body {
+            background-color: #0f172a;
+            color: white;
+            font-family: 'Noto Sans TC', sans-serif;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        /* Modern Font Classes */
+        .modern-font {
+            font-family: 'Montserrat', sans-serif; /* 用於英數字 */
+        }
+        
+        .chinese-font {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        #game-canvas {
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- Modern Background Animation --- */
+        .modern-bg {
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #312e81, #0f172a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- Glassmorphism UI --- */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-title {
+            background: linear-gradient(to right, #60a5fa, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(167, 139, 250, 0.5));
+        }
+
+        /* --- Modern Buttons --- */
+        .modern-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modern-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .modern-btn:hover::before {
+            left: 100%;
+        }
+
+        .modern-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn-story {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            box-shadow: var(--primary-glow);
+        }
+        
+        .btn-infinite {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            box-shadow: var(--gold-glow);
+        }
+
+        /* --- Cards --- */
+        .card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            pointer-events: auto;
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: #fbbf24;
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.2);
+        }
+
+        .shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        
+        .damage-text {
+            position: absolute;
+            font-weight: 900;
+            font-size: 28px;
+            color: #ef4444;
+            pointer-events: none;
+            animation: floatUp 0.8s cubic-bezier(0, 0.55, 0.45, 1) forwards;
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            20% { transform: translate(-50%, -80%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -150%) scale(1); opacity: 0; }
+        }
+
+        .hidden { display: none !important; }
+        
+        /* Boss Health Bar Style */
+        .boss-hp-container {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            max-width: 700px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .boss-hp-container.visible {
+            opacity: 1;
+        }
+
+        /* Cheat Indicators */
+        .cheat-indicator {
+            position: absolute;
+            right: 20px;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 14px;
+            letter-spacing: 1px;
+            backdrop-filter: blur(5px);
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+            border-left: 4px solid;
+        }
+
+        #auto-mode-indicator {
+            top: 20px;
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+
+        #god-mode-indicator {
+            top: 70px;
+            background: rgba(234, 179, 8, 0.2);
+            border-color: #eab308;
+            box-shadow: 0 0 15px rgba(234, 179, 8, 0.3);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        /* Version Display */
+        #version-display {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: bold;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+            z-index: 100;
+            letter-spacing: 2px;
+        }
+
+        /* Floating particles for bg */
+        .bg-particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 20s infinite linear;
+        }
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-100vh) rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex justify-center items-center select-none bg-black">
+
+    <!-- Canvas Layer -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- UI Overlay: Start Screen -->
+    <div id="start-screen" class="ui-layer modern-bg z-50 pointer-events-auto">
+        <!-- Abstract Background Particles -->
+        <div id="bg-particles" class="absolute w-full h-full overflow-hidden pointer-events-none"></div>
+
+        <div class="relative z-10 text-center flex flex-col items-center max-w-5xl px-6 w-full">
+            <div class="mb-4 text-blue-400 font-bold tracking-[0.3em] text-sm uppercase modern-font animate-pulse">
+                TYPING DEFENSE SYSTEM
+            </div>
+            <h1 class="text-6xl md:text-8xl mb-8 font-black hero-title leading-tight tracking-tight chinese-font">
+                西寧<br>校園守護者
+            </h1>
+            
+            <!-- Modern Info Panel -->
+            <div class="glass-panel p-8 rounded-2xl mb-10 w-full max-w-3xl transform transition-all hover:scale-[1.01] duration-500 border border-blue-500/20">
+                <div class="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+                    <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <h2 class="text-2xl text-white font-bold chinese-font tracking-wide">校園安全防禦協定</h2>
+                    <div class="ml-auto text-xs text-blue-300 font-mono">STATUS: ACTIVE</div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+                    <div class="space-y-4">
+                        <div class="bg-blue-900/20 p-4 rounded-lg border-l-4 border-blue-500">
+                            <h3 class="text-blue-300 font-bold mb-1 chinese-font">任務目標</h3>
+                            <p class="text-gray-300 text-sm leading-relaxed">
+                                異次元病毒正在侵蝕 <span class="text-white font-bold">博學、群英、耕心樓</span>。
+                                請透過 <span class="text-yellow-400 font-bold">精準打字</span> 啟動淨化程序，擊碎所有入侵代碼。
+                            </p>
+                        </div>
+                        <div class="bg-red-900/20 p-4 rounded-lg border-l-4 border-red-500">
+                            <h3 class="text-red-300 font-bold mb-1 chinese-font">系統警告</h3>
+                            <p class="text-gray-300 text-sm leading-relaxed">
+                                錯誤輸入將導致 <span class="text-white font-bold">反噬傷害</span>。
+                                當病毒核心（魔王）出現時，必須優先集中火力破壞其肢體模組。
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col justify-center space-y-3 text-sm text-gray-400 font-mono">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded bg-gray-700 flex items-center justify-center text-white font-bold">A</span>
+                            <span>攻擊一般病毒</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded bg-yellow-600 flex items-center justify-center text-white font-bold">★</span>
+                            <span>通關獲取強化</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded bg-red-600 flex items-center justify-center text-white font-bold">!</span>
+                            <span>魔王部位破壞</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-6 w-full justify-center">
+                <button onclick="startGame('story')" class="modern-btn btn-story px-10 py-5 text-white font-bold rounded-xl text-xl flex items-center justify-center gap-3 w-full md:w-64 group">
+                    <span class="transform group-hover:scale-110 transition-transform">⚔️</span> 
+                    <span class="chinese-font tracking-widest">劇情戰役</span>
+                </button>
+                <button onclick="startGame('infinite')" class="modern-btn btn-infinite px-10 py-5 text-white font-bold rounded-xl text-xl flex items-center justify-center gap-3 w-full md:w-64 group">
+                    <span class="transform group-hover:scale-110 transition-transform">🔥</span> 
+                    <span class="chinese-font tracking-widest">無限挑戰</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-6 text-xs text-gray-500 modern-font tracking-widest uppercase">
+            System Ready • Waiting for Input
+        </div>
+    </div>
+
+    <!-- UI Overlay: HUD -->
+    <div id="hud" class="ui-layer !justify-between !items-start p-6 hidden">
+        <div class="flex justify-between w-full max-w-6xl mx-auto items-end glass-panel px-6 py-4 rounded-2xl">
+            <!-- HP Bar -->
+            <div class="flex flex-col gap-2 w-1/3">
+                <div class="flex justify-between items-end">
+                    <div class="text-red-400 chinese-font font-bold text-sm tracking-widest">防禦值</div>
+                    <div id="hp-text" class="text-white text-sm font-mono font-bold">100/100</div>
+                </div>
+                <div class="w-full h-3 bg-gray-800 rounded-full relative overflow-hidden">
+                    <div id="hp-bar" class="h-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-300 shadow-[0_0_10px_rgba(248,113,113,0.7)]" style="width: 100%;"></div>
+                </div>
+            </div>
+            
+            <!-- Stage Info -->
+            <div class="text-center absolute left-1/2 -translate-x-1/2 top-4">
+                <div id="stage-name" class="text-2xl font-black text-white tracking-widest drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] chinese-font">西寧博學樓</div>
+                <div class="text-xs text-blue-300 mt-1 chinese-font bg-blue-900/30 px-3 py-1 rounded-full border border-blue-500/30 inline-block">淨化進度：<span id="progress-text" class="font-mono ml-1">0%</span></div>
+            </div>
+
+            <!-- Score -->
+            <div class="text-right w-1/3">
+                <div class="text-blue-400 chinese-font font-bold text-sm tracking-widest">戰績</div>
+                <div id="score-display" class="text-4xl font-black modern-font text-white drop-shadow-md tabular-nums">0</div>
+            </div>
+        </div>
+        
+        <!-- Boss HP Bar -->
+        <div id="boss-hud" class="boss-hp-container pointer-events-none">
+            <h3 class="text-red-500 font-black chinese-font text-3xl mb-2 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)] tracking-widest text-center">⚠️ 警告：魔王降臨</h3>
+            <div class="w-full h-4 bg-gray-900/80 rounded-full relative overflow-hidden border border-red-500/30 backdrop-blur-sm">
+                <div id="boss-hp-bar" class="h-full bg-gradient-to-r from-red-800 via-red-600 to-red-500 transition-all duration-200 shadow-[0_0_20px_rgba(239,68,68,0.8)]" style="width: 100%;"></div>
+            </div>
+            <div class="text-xs text-red-300 mt-2 chinese-font tracking-widest text-center opacity-80">鎖定目標：破壞所有部位</div>
+        </div>
+        
+        <!-- Level Up Notification -->
+        <div id="level-notify" class="absolute top-1/3 w-full text-center hidden z-50">
+            <div class="glass-panel inline-block px-16 py-10 rounded-3xl border border-white/20 shadow-[0_0_50px_rgba(59,130,246,0.4)] transform hover:scale-105 transition-transform">
+                <h2 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-blue-200 drop-shadow-lg chinese-font mb-4 tracking-wider">
+                    區域淨化完成
+                </h2>
+                <p id="level-notify-sub" class="text-blue-200 text-xl font-bold tracking-widest chinese-font">系統升級準備中...</p>
+            </div>
+        </div>
+
+        <!-- Cheat Indicators -->
+        <div id="auto-mode-indicator" class="cheat-indicator">自動攻擊：啟動</div>
+        <div id="god-mode-indicator" class="cheat-indicator">無敵模式：啟動</div>
+    </div>
+
+    <!-- Version Display -->
+    <div id="version-display">V1.6 MODERN TW</div>
+
+    <!-- UI Overlay: Upgrade Menu -->
+    <div id="upgrade-menu" class="ui-layer bg-black/80 z-40 hidden pointer-events-auto backdrop-blur-md">
+        <h2 class="text-5xl text-white mb-2 font-bold chinese-font tracking-tight">系統升級</h2>
+        <p class="text-gray-400 mb-12 chinese-font text-sm">請選擇強化模組以繼續任務</p>
+        
+        <div id="cards-container" class="flex flex-col md:flex-row gap-8 p-4">
+            <!-- Cards will be injected here via JS -->
+        </div>
+    </div>
+
+    <!-- UI Overlay: Game Over -->
+    <div id="game-over-screen" class="ui-layer bg-red-950/90 z-50 hidden pointer-events-auto backdrop-blur-lg">
+        <h1 class="text-8xl text-red-500 mb-4 chinese-font font-black tracking-widest drop-shadow-[0_0_30px_rgba(239,68,68,0.5)]">防衛失敗</h1>
+        <p class="text-red-200 chinese-font tracking-widest mb-10 text-lg opacity-80">系統全面崩潰</p>
+        
+        <div class="glass-panel p-8 rounded-2xl mb-10 w-full max-w-md text-center border border-red-500/20">
+            <p class="text-gray-400 mb-2 text-sm uppercase tracking-wide chinese-font">最終戰績</p>
+            <p id="final-score" class="text-6xl text-white mb-6 modern-font font-bold">0</p>
+            <p id="death-reason" class="text-red-300 font-bold border-t border-white/10 pt-4 chinese-font">失守...</p>
+        </div>
+
+        <button onclick="location.reload()" class="modern-btn btn-story px-10 py-4 text-white font-bold rounded-xl modern-font hover:brightness-110 transition">
+            <span class="mr-2">↺</span> <span class="chinese-font">重啟系統</span>
+        </button>
+    </div>
+
+    <!-- UI Overlay: Victory -->
+    <div id="victory-screen" class="ui-layer bg-blue-950/90 z-50 hidden pointer-events-auto backdrop-blur-lg">
+        <h1 class="text-7xl text-yellow-400 mb-4 chinese-font font-black tracking-widest drop-shadow-[0_0_30px_rgba(234,179,8,0.5)]">任務完成</h1>
+        <p class="text-blue-200 chinese-font tracking-widest mb-10 text-lg opacity-80">校園威脅已全數清除</p>
+        
+        <div class="glass-panel p-10 rounded-2xl mb-10 w-full max-w-md text-center border border-yellow-500/30 shadow-[0_0_40px_rgba(234,179,8,0.2)]">
+            <div class="text-6xl mb-6 filter drop-shadow-lg">👑</div>
+            <p class="text-gray-300 mb-2 text-sm uppercase tracking-wide chinese-font">總戰績</p>
+            <p id="victory-score" class="text-6xl text-white mb-2 modern-font font-bold">0</p>
+        </div>
+
+        <button onclick="location.reload()" class="modern-btn btn-story px-10 py-4 text-white font-bold rounded-xl modern-font hover:brightness-110 transition">
+            <span class="mr-2">★</span> <span class="chinese-font">再次挑戰</span>
+        </button>
+    </div>
+
+    <script>
+        // --- Version Control ---
+        const GAME_VERSION = "V1.6 MODERN TW";
+        document.getElementById('version-display').innerText = GAME_VERSION;
+
+        // --- Visual Effects for Start Screen ---
+        function initStartScreenEffects() {
+            const container = document.getElementById('bg-particles');
+            for(let i=0; i<20; i++) {
+                const p = document.createElement('div');
+                p.className = 'bg-particle';
+                const size = Math.random() * 100 + 20;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.background = `radial-gradient(circle, rgba(59, 130, 246, ${Math.random() * 0.2}), transparent)`;
+                p.style.animationDuration = (20 + Math.random() * 40) + 's';
+                p.style.animationDelay = (Math.random() * -20) + 's';
+                container.appendChild(p);
+            }
+        }
+        initStartScreenEffects();
+
+        // --- Audio System ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+            
+            if (type === 'shoot') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.2);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'boss_hit') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(50, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'boss_part_break') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(20, now + 0.6);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                osc.start(now);
+                osc.stop(now + 0.6);
+            } else if (type === 'miss') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.exponentialRampToValueAtTime(50, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'powerup') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(1200, now + 0.4);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (type === 'damage') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(80, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'boss_spawn') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.linearRampToValueAtTime(200, now + 2.0);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.linearRampToValueAtTime(0, now + 2.0);
+                osc.start(now);
+                osc.stop(now + 2.0);
+            } else if (type === 'cheat') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1200, now);
+                osc.frequency.linearRampToValueAtTime(1800, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+        }
+
+        // --- Game Config & State ---
+        const LEVELS = [
+            { 
+                name: "第一關：西寧博學樓", 
+                chars: "ASDFGHJKL", 
+                desc: "基礎防禦：中排核心鍵位", 
+                color: "#60a5fa", 
+                enemySpeedBase: 1.5,
+                spawnRate: 1200,
+                targetKills: 30,
+                bossParts: [
+                    { id: 'head', word: 'FLASH', label: '核心', offset: {x: 0, y: -80}, w: 120, h: 70, color: '#facc15' },
+                    { id: 'l_arm', word: 'ASK', label: '武裝L', offset: {x: -120, y: 0}, w: 90, h: 90, color: '#60a5fa' },
+                    { id: 'r_arm', word: 'ADD', label: '武裝R', offset: {x: 120, y: 0}, w: 90, h: 90, color: '#60a5fa' },
+                    { id: 'l_leg', word: 'SAD', label: '推進器L', offset: {x: -60, y: 120}, w: 70, h: 110, color: '#3b82f6' },
+                    { id: 'r_leg', word: 'GLAD', label: '推進器R', offset: {x: 60, y: 120}, w: 70, h: 110, color: '#3b82f6' }
+                ]
+            },
+            { 
+                name: "第二關：西寧群英樓", 
+                chars: "ASDFGHJKLQWERTYUIOP", // Cumulative
+                desc: "進階防禦：中排 + 上排擴充", 
+                color: "#f87171", 
+                enemySpeedBase: 1.8,
+                spawnRate: 1000,
+                targetKills: 40,
+                bossParts: [
+                    { id: 'head', word: 'POWER', label: '動力核', offset: {x: 0, y: -80}, w: 120, h: 70, color: '#f87171' },
+                    { id: 'l_arm', word: 'TOP', label: '雷射L', offset: {x: -120, y: 0}, w: 90, h: 90, color: '#ef4444' },
+                    { id: 'r_arm', word: 'POP', label: '雷射R', offset: {x: 120, y: 0}, w: 90, h: 90, color: '#ef4444' },
+                    { id: 'l_leg', word: 'OUT', label: '支架L', offset: {x: -60, y: 120}, w: 70, h: 110, color: '#dc2626' },
+                    { id: 'r_leg', word: 'TRY', label: '支架R', offset: {x: 60, y: 120}, w: 70, h: 110, color: '#dc2626' }
+                ]
+            },
+            { 
+                name: "第三關：西寧耕心樓", 
+                chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ", // Cumulative (Full)
+                desc: "全面防禦：全鍵位極限測試", 
+                color: "#4ade80", 
+                enemySpeedBase: 2.0,
+                spawnRate: 900,
+                targetKills: 50,
+                bossParts: [
+                    { id: 'head', word: 'ZXCV', label: '主腦', offset: {x: 0, y: -80}, w: 120, h: 70, color: '#4ade80' },
+                    { id: 'l_arm', word: 'VBNM', label: '裝甲L', offset: {x: -120, y: 0}, w: 90, h: 90, color: '#22c55e' },
+                    { id: 'r_arm', word: 'MNBV', label: '裝甲R', offset: {x: 120, y: 0}, w: 90, h: 90, color: '#22c55e' },
+                    { id: 'l_leg', word: 'VCXZ', label: '履帶L', offset: {x: -60, y: 120}, w: 70, h: 110, color: '#16a34a' },
+                    { id: 'r_leg', word: 'BCNM', label: '履帶R', offset: {x: 60, y: 120}, w: 70, h: 110, color: '#16a34a' }
+                ]
+            },
+            { 
+                name: "魔王關卡：全校守護戰", 
+                chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 
+                desc: "全軍出擊 - 最終決戰",
+                color: "#c084fc", 
+                enemySpeedBase: 2.5,
+                spawnRate: 600,
+                targetKills: 60,
+                bossParts: [
+                    { id: 'head', word: 'VICTORY', label: '虛空核心', offset: {x: 0, y: -90}, w: 140, h: 80, color: '#d8b4fe' },
+                    { id: 'l_arm', word: 'BRAVE', label: '毀滅之翼', offset: {x: -150, y: -30}, w: 100, h: 100, color: '#a855f7' },
+                    { id: 'r_arm', word: 'FIGHT', label: '絕望之翼', offset: {x: 150, y: -30}, w: 100, h: 100, color: '#a855f7' },
+                    { id: 'l_leg', word: 'GLORY', label: '混沌支柱', offset: {x: -80, y: 140}, w: 80, h: 120, color: '#7e22ce' },
+                    { id: 'r_leg', word: 'HONOR', label: '秩序支柱', offset: {x: 80, y: 140}, w: 80, h: 120, color: '#7e22ce' }
+                ],
+                isBoss: true,
+                isStoryEnd: true
+            },
+            { 
+                name: "無限模式：永恆守護", 
+                chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 
+                desc: "無盡挑戰 - 積分無上限",
+                color: "#fbbf24", // Amber
+                enemySpeedBase: 2.0,
+                spawnRate: 1000,
+                targetKills: Infinity,
+                isInfinite: true
+            }
+        ];
+
+        const BUFFS = [
+            { id: 'heal', name: '緊急修復', desc: '回復 30% 系統完整度', type: 'heal' },
+            { id: 'slow', name: '時空力場', desc: '敵人速度降低 20%', type: 'stat', stat: 'speedMult', val: 0.8 },
+            { id: 'score', name: '數據挖掘', desc: '分數獲取增加 50%', type: 'stat', stat: 'scoreMult', val: 0.5 },
+            { id: 'maxhp', name: '結構強化', desc: '最大完整度增加 20', type: 'maxhp', val: 20 },
+            { id: 'shield', name: '防火牆', desc: '抵擋一次致命錯誤', type: 'shield' }
+        ];
+
+        const BOSS_WORDS_POOL = ["CHAOS", "ABYSS", "NIGHTMARE", "DOOM", "ETERNAL", "OMEGA", "FINAL", "LIMIT", "BREAK", "ZERO", "TYRANT", "TITAN", "STORM", "VOID", "NOVA"];
+
+        // --- Cheat Detection ---
+        let inputHistory = '';
+        const CHEAT_CODE_AUTO = "2u/ 2u/ cl3gj94";
+        const CHEAT_CODE_GOD = "2u/ 2u/ xl3g";
+
+        let canvas, ctx;
+        let animationId;
+        let lastTime = 0;
+        
+        let gameState = {
+            status: 'START',
+            currentStageIdx: 0,
+            score: 0,
+            enemies: [],
+            particles: [],
+            projectiles: [],
+            spawnTimer: 0,
+            killsInStage: 0,
+            boss: null,
+            bossWaveCount: 0,
+            hp: 100,
+            maxHp: 100,
+            scoreMult: 1.0,
+            speedMult: 1.0,
+            shield: false,
+            autoPlay: false,
+            autoPlayTimer: 0,
+            godMode: false
+        };
+
+        // --- Init ---
+        window.onload = () => {
+            canvas = document.getElementById('game-canvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            window.addEventListener('keydown', handleInput);
+        };
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function startGame(mode) {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            document.getElementById('hud').classList.add('flex');
+            
+            resetGame();
+            if (mode === 'infinite') {
+                startStage(4);
+            } else {
+                startStage(0);
+            }
+            
+            gameState.status = 'PLAYING';
+            lastTime = performance.now();
+            loop(lastTime);
+        }
+
+        function resetGame() {
+            gameState = {
+                status: 'START',
+                currentStageIdx: 0,
+                score: 0,
+                enemies: [],
+                particles: [],
+                projectiles: [],
+                spawnTimer: 0,
+                killsInStage: 0,
+                boss: null,
+                bossWaveCount: 0,
+                hp: 100,
+                maxHp: 100,
+                scoreMult: 1.0,
+                speedMult: 1.0,
+                shield: false,
+                autoPlay: false,
+                autoPlayTimer: 0,
+                godMode: false
+            };
+            document.getElementById('auto-mode-indicator').style.display = 'none';
+            document.getElementById('god-mode-indicator').style.display = 'none';
+            inputHistory = '';
+            updateHUD();
+        }
+
+        function startStage(idx) {
+            gameState.currentStageIdx = idx;
+            gameState.killsInStage = 0;
+            gameState.enemies = [];
+            gameState.projectiles = [];
+            gameState.boss = null;
+            document.getElementById('boss-hud').classList.remove('visible');
+            
+            const stage = LEVELS[idx];
+            document.getElementById('stage-name').innerText = stage.name;
+            // Update stage title color
+            document.getElementById('stage-name').style.textShadow = `0 0 15px ${stage.color}`;
+            
+            createFloatingText(canvas.width/2, canvas.height/2, stage.name, stage.color, 40);
+        }
+
+        // --- Game Loop ---
+        function loop(timestamp) {
+            if (gameState.status !== 'PLAYING') return;
+            const dt = timestamp - lastTime;
+            lastTime = timestamp;
+            update(dt);
+            draw();
+            animationId = requestAnimationFrame(loop);
+        }
+
+        // --- Update Logic ---
+        function update(dt) {
+            const stage = LEVELS[gameState.currentStageIdx];
+
+            // Auto Play
+            if (gameState.autoPlay) {
+                gameState.autoPlayTimer -= dt;
+                if (gameState.autoPlayTimer <= 0) {
+                    performAutoAttack();
+                    gameState.autoPlayTimer = 100; 
+                }
+            }
+
+            // Boss Logic
+            if (gameState.boss) {
+                gameState.boss.y += (0.15 * gameState.speedMult) * (dt / 16);
+                if (gameState.boss.y > canvas.height - 150) {
+                    takeDamage(100); 
+                    shakeScreen();
+                }
+
+                const allDestroyed = gameState.boss.parts.every(p => p.isDestroyed);
+                if (allDestroyed) {
+                    createParticles(gameState.boss.x, gameState.boss.y, '#ffd700');
+                    // Add more particles for boss death
+                    for(let i=0; i<3; i++) createParticles(gameState.boss.x + (Math.random()-0.5)*200, gameState.boss.y + (Math.random()-0.5)*200, '#ffd700');
+                    
+                    gameState.score += 2000 * gameState.scoreMult;
+                    gameState.boss = null;
+                    document.getElementById('boss-hud').classList.remove('visible');
+                    
+                    setTimeout(() => {
+                        if (stage.isInfinite) {
+                            levelComplete("無限模式升級!");
+                        } else if (stage.isStoryEnd) {
+                            victory();
+                        } else if (gameState.currentStageIdx >= LEVELS.length - 1) {
+                            victory();
+                        } else {
+                            levelComplete();
+                        }
+                    }, 1000);
+                }
+
+                for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+                    gameState.enemies[i].y += 10; 
+                     if (gameState.enemies[i].y > canvas.height) gameState.enemies.splice(i, 1);
+                }
+
+            } else {
+                // Enemy Spawning
+                let canSpawn = false;
+                if (stage.isInfinite) {
+                    const killsPerBoss = 30;
+                    const dynamicSpawnRate = Math.max(400, stage.spawnRate - (gameState.killsInStage * 10));
+                    const speedModifier = 1 + Math.floor(gameState.killsInStage / 10) * 0.05;
+                    const currentBossWave = Math.floor(gameState.killsInStage / killsPerBoss);
+                    
+                    if (gameState.killsInStage > 0 && 
+                        gameState.killsInStage % killsPerBoss === 0 && 
+                        gameState.bossWaveCount < currentBossWave &&
+                        gameState.enemies.length === 0) {
+                        gameState.bossWaveCount = currentBossWave;
+                        spawnBoss(stage, true); 
+                    } else {
+                        canSpawn = true;
+                        gameState.spawnTimer -= dt;
+                        if (gameState.spawnTimer <= 0) {
+                            spawnEnemy(stage, speedModifier);
+                            gameState.spawnTimer = dynamicSpawnRate;
+                        }
+                    }
+                } else {
+                    if (gameState.killsInStage < stage.targetKills) {
+                        gameState.spawnTimer -= dt;
+                        if (gameState.spawnTimer <= 0) {
+                            spawnEnemy(stage);
+                            let ramp = Math.min(0.5, gameState.killsInStage / 50); 
+                            gameState.spawnTimer = stage.spawnRate * (1 - ramp); 
+                        }
+                    } else if (gameState.enemies.length === 0) {
+                        spawnBoss(stage);
+                    }
+                }
+
+                // Update Enemies
+                for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+                    let e = gameState.enemies[i];
+                    const spd = e.customSpeed ? e.customSpeed : e.speed * gameState.speedMult;
+                    e.y += spd * (dt / 16);
+                    if (e.y > canvas.height) {
+                        takeDamage(15);
+                        gameState.enemies.splice(i, 1);
+                        shakeScreen();
+                    }
+                }
+            }
+
+            // Projectiles
+            for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
+                let p = gameState.projectiles[i];
+                p.x = lerp(p.x, p.targetX, 0.3); // Smoother, faster lerp
+                p.y = lerp(p.y, p.targetY, 0.3);
+                
+                // Add tail particle
+                if (Math.random() > 0.5) {
+                    gameState.particles.push({
+                        x: p.x, y: p.y,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (Math.random() - 0.5) * 2,
+                        life: 200, color: p.color || '#60a5fa', size: 2
+                    });
+                }
+
+                if (Math.abs(p.x - p.targetX) < 20 && Math.abs(p.y - p.targetY) < 20) {
+                    createParticles(p.targetX, p.targetY, p.color || '#fbbf24');
+                    gameState.projectiles.splice(i, 1);
+                }
+            }
+
+            // Particles
+            for (let i = gameState.particles.length - 1; i >= 0; i--) {
+                let p = gameState.particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= dt;
+                if (p.life <= 0) gameState.particles.splice(i, 1);
+            }
+        }
+
+        function spawnEnemy(stage, speedMod = 1.0) {
+            const char = stage.chars.charAt(Math.floor(Math.random() * stage.chars.length));
+            const x = Math.random() * (canvas.width - 100) + 50;
+            const speed = (stage.enemySpeedBase + (Math.random() * 0.5)) * gameState.speedMult * speedMod;
+            
+            gameState.enemies.push({
+                char: char,
+                x: x,
+                y: -50,
+                speed: speed, 
+                customSpeed: speed,
+                id: Math.random(),
+                pulse: 0 // For animation
+            });
+        }
+
+        function spawnBoss(stage, isInfinite = false) {
+            playSound('boss_spawn');
+            let parts = [];
+            if (isInfinite) {
+                const colors = ['#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'];
+                const getRandomWord = () => BOSS_WORDS_POOL[Math.floor(Math.random() * BOSS_WORDS_POOL.length)];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                parts = [
+                    { id: 'head', word: getRandomWord(), label: '核心', offset: {x: 0, y: -90}, w: 120, h: 70, color: color },
+                    { id: 'l_arm', word: getRandomWord(), label: '左觸手', offset: {x: -140, y: -20}, w: 90, h: 90, color: color },
+                    { id: 'r_arm', word: getRandomWord(), label: '右觸手', offset: {x: 140, y: -20}, w: 90, h: 90, color: color },
+                    { id: 'l_leg', word: getRandomWord(), label: '左根基', offset: {x: -70, y: 130}, w: 70, h: 110, color: color },
+                    { id: 'r_leg', word: getRandomWord(), label: '右根基', offset: {x: 70, y: 130}, w: 70, h: 110, color: color }
+                ];
+                if (gameState.bossWaveCount > 2) parts.forEach(p => p.word += getRandomWord().substring(0, 3));
+                parts = parts.map(p => ({ ...p, typedIndex: 0, isDestroyed: false }));
+            } else {
+                parts = stage.bossParts.map(p => ({ ...p, typedIndex: 0, isDestroyed: false }));
+            }
+
+            gameState.boss = {
+                x: canvas.width / 2,
+                y: 150,
+                parts: parts,
+                floatOffset: 0
+            };
+            
+            const bossHud = document.getElementById('boss-hud');
+            bossHud.classList.add('visible');
+            updateBossHUD();
+            createFloatingText(canvas.width/2, canvas.height/2, "魔王出現！", "#ef4444", 60);
+        }
+
+        // --- Drawing ---
+        function draw() {
+            // Use clearRect for transparency if needed, but here we refill with semi-transparent black for trails
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.3)'; // Trail effect
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const stage = LEVELS[gameState.currentStageIdx];
+
+            // --- Draw Boss ---
+            if (gameState.boss) {
+                const b = gameState.boss;
+                b.floatOffset = (Date.now() / 1000) * 2; // Simple time based animation
+                const hoverY = Math.sin(b.floatOffset) * 10;
+                
+                const bx = b.x;
+                const by = b.y + hoverY;
+                
+                // Connector Lines (Tech style)
+                ctx.strokeStyle = 'rgba(75, 85, 99, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                b.parts.forEach(part => {
+                    if (!part.isDestroyed) {
+                        ctx.moveTo(bx, by);
+                        ctx.lineTo(bx + part.offset.x, by + part.offset.y);
+                    }
+                });
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Boss Core Glow
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = stage.color;
+                ctx.fillStyle = stage.color;
+                ctx.beginPath();
+                ctx.arc(bx, by, 20, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Draw Parts (Modules)
+                b.parts.forEach(part => {
+                    if (part.isDestroyed) return;
+
+                    const px = bx + part.offset.x;
+                    const py = by + part.offset.y;
+
+                    // Module Glow
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = part.color;
+                    
+                    // Module Body (Rounded Rect)
+                    ctx.fillStyle = 'rgba(30, 41, 59, 0.9)';
+                    ctx.beginPath();
+                    ctx.roundRect(px - part.w/2, py - part.h/2, part.w, part.h, 10);
+                    ctx.fill();
+                    
+                    // Border
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = part.color;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+
+                    // Tech Details inside
+                    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                    ctx.fillRect(px - part.w/2, py + part.h/2 - 5, part.w, 5);
+
+                    // Text
+                    ctx.font = "bold 16px 'Montserrat', sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    
+                    const charWidth = 14;
+                    const startX = px - (part.word.length * charWidth) / 2 + 7;
+
+                    for (let i = 0; i < part.word.length; i++) {
+                        const char = part.word[i];
+                        const cx = startX + (i * charWidth);
+                        
+                        if (i < part.typedIndex) {
+                            ctx.fillStyle = "#4ade80"; // Green Success
+                            ctx.fillText(char, cx, py);
+                        } else if (i === part.typedIndex) {
+                            ctx.fillStyle = "#fbbf24"; // Amber Target
+                            ctx.font = "bold 22px 'Montserrat', sans-serif"; // Pop effect
+                            ctx.fillText(char, cx, py);
+                            ctx.font = "bold 16px 'Montserrat', sans-serif";
+                        } else {
+                            ctx.fillStyle = "#94a3b8"; // Slate Pending
+                            ctx.fillText(char, cx, py);
+                        }
+                    }
+                });
+            }
+
+            // Draw Enemies (Modern Cards)
+            ctx.font = "bold 28px 'Noto Sans TC'";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            gameState.enemies.forEach(e => {
+                // Subtle pulse
+                e.pulse = (Math.sin(Date.now() / 200) + 1) / 2; // 0 to 1
+                const glowSize = 10 + e.pulse * 10;
+
+                ctx.shadowBlur = glowSize;
+                ctx.shadowColor = stage.color;
+                
+                // Card Background
+                ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+                ctx.beginPath();
+                ctx.roundRect(e.x - 25, e.y - 30, 50, 60, 8);
+                ctx.fill();
+                
+                // Top accent bar
+                ctx.fillStyle = stage.color;
+                ctx.beginPath();
+                ctx.roundRect(e.x - 25, e.y - 30, 50, 5, {topLeft: 8, topRight: 8});
+                ctx.fill();
+
+                // Border
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = "rgba(255,255,255,0.2)";
+                ctx.strokeRect(e.x - 25, e.y - 30, 50, 60);
+
+                // Text
+                ctx.fillStyle = "#ffffff";
+                ctx.fillText(e.char, e.x, e.y + 5);
+                
+                ctx.shadowBlur = 0;
+            });
+
+            // Draw Projectiles (Glowing Orbs)
+            gameState.projectiles.forEach(p => {
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = p.color || '#60a5fa';
+                ctx.fillStyle = "#ffffff"; // Bright core
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Outer ring
+                ctx.strokeStyle = p.color || '#60a5fa';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                ctx.shadowBlur = 0;
+            });
+
+            // Draw Particles (Soft Glows)
+            gameState.particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life / 600;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            });
+        }
+
+        // --- Helpers ---
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 12; i++) {
+                gameState.particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: (Math.random() - 0.5) * 12,
+                    life: 500 + Math.random() * 300,
+                    color: color,
+                    size: Math.random() * 4 + 2
+                });
+            }
+        }
+
+        function createFloatingText(x, y, text, color, size, isDamage = false) {
+            const el = document.createElement('div');
+            el.innerText = text;
+            el.className = isDamage ? 'damage-text' : 'modern-font font-black chinese-font'; // Add chinese-font class
+            el.style.position = 'absolute';
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.color = color;
+            el.style.fontSize = size + 'px';
+            el.style.textShadow = `0 0 20px ${color}`;
+            el.style.pointerEvents = 'none';
+            el.style.zIndex = 45;
+            
+            if (!isDamage) {
+                el.style.transform = 'translate(-50%, -50%)';
+                el.style.transition = 'all 1s ease-out';
+                setTimeout(() => {
+                    el.style.opacity = 0;
+                    el.style.transform = 'translate(-50%, -150%) scale(1.1)';
+                }, 50);
+            }
+            
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        // Reuse previous logic functions (performAutoAttack, handleInput, activateCheat, etc.)
+        // Ensure they reference the modern drawing and state logic.
+        
+        function performAutoAttack() {
+            if (gameState.boss) {
+                const aliveParts = gameState.boss.parts.filter(p => !p.isDestroyed);
+                if (aliveParts.length > 0) {
+                    const part = aliveParts[0];
+                    const char = part.word[part.typedIndex];
+                    if (char) executeKey(char);
+                }
+            } else if (gameState.enemies.length > 0) {
+                let targetChar = null;
+                let maxY = -1000;
+                
+                gameState.enemies.forEach((enemy) => {
+                    // Modern Auto: Wait until y > 40 (visible)
+                    if (enemy.y > 40) {
+                        if (enemy.y > maxY) {
+                            maxY = enemy.y;
+                            targetChar = enemy.char;
+                        }
+                    }
+                });
+                
+                if (targetChar) executeKey(targetChar);
+            }
+        }
+
+        function executeKey(key) { handleInput({ key: key }); }
+
+        function handleInput(e) {
+            if (gameState.status !== 'PLAYING') return;
+            
+            if (e.key.length === 1) { 
+                inputHistory += e.key;
+                if (inputHistory.length > 50) inputHistory = inputHistory.slice(-50);
+                if (inputHistory.endsWith(CHEAT_CODE_AUTO)) { activateAutoCheat(); inputHistory = ''; return; }
+                if (inputHistory.endsWith(CHEAT_CODE_GOD)) { activateGodCheat(); inputHistory = ''; return; }
+            }
+            if (e.key.length > 1) return;
+            
+            const key = e.key.toUpperCase();
+            
+            if (gameState.boss) {
+                let hitAny = false;
+                gameState.boss.parts.forEach(part => {
+                    if (part.isDestroyed) return;
+                    const neededChar = part.word[part.typedIndex];
+                    if (key === neededChar) {
+                        hitAny = true;
+                        part.typedIndex++;
+                        const targetX = gameState.boss.x + part.offset.x;
+                        const targetY = gameState.boss.y + part.offset.y;
+                        shootProjectile(targetX, targetY, part.color);
+                        playSound('boss_hit');
+                        if (part.typedIndex >= part.word.length) {
+                            part.isDestroyed = true;
+                            playSound('boss_part_break');
+                            createParticles(targetX, targetY, part.color);
+                            createFloatingText(targetX, targetY, "擊破", "#fff", 20);
+                            gameState.score += 500 * gameState.scoreMult;
+                            shakeScreen();
+                        }
+                    }
+                });
+                if (hitAny) updateBossHUD();
+                else if (/[A-Z]/.test(key)) { takeDamage(5); playSound('miss'); createFloatingText(canvas.width/2, canvas.height/2 + 200, "失誤", "#ef4444", 30, true); }
+                return;
+            }
+
+            let targetIdx = -1;
+            let maxY = -1000;
+            gameState.enemies.forEach((enemy, idx) => {
+                if (enemy.char === key) {
+                    if (enemy.y > maxY) {
+                        maxY = enemy.y;
+                        targetIdx = idx;
+                    }
+                }
+            });
+
+            if (targetIdx !== -1) {
+                const enemy = gameState.enemies[targetIdx];
+                shootProjectile(enemy.x, enemy.y, LEVELS[gameState.currentStageIdx].color);
+                gameState.enemies.splice(targetIdx, 1);
+                gameState.score += Math.ceil(100 * gameState.scoreMult);
+                gameState.killsInStage++;
+                playSound('shoot');
+                updateHUD();
+            } else {
+                if (/[A-Z]/.test(key)) {
+                    takeDamage(5);
+                    playSound('miss');
+                    createFloatingText(canvas.width/2, canvas.height/2 + 100, "失誤", "#ef4444", 30, true);
+                    shakeScreen();
+                }
+            }
+        }
+
+        function activateAutoCheat() {
+            gameState.autoPlay = !gameState.autoPlay;
+            playSound('cheat');
+            createFloatingText(canvas.width/2, canvas.height/2, gameState.autoPlay ? "自動攻擊：啟動" : "自動攻擊：關閉", "#4ade80", 40);
+            document.getElementById('auto-mode-indicator').style.display = gameState.autoPlay ? 'block' : 'none';
+        }
+
+        function activateGodCheat() {
+            gameState.godMode = !gameState.godMode;
+            playSound('cheat');
+            createFloatingText(canvas.width/2, canvas.height/2, gameState.godMode ? "無敵模式：啟動" : "無敵模式：關閉", "#facc15", 40);
+            document.getElementById('god-mode-indicator').style.display = gameState.godMode ? 'block' : 'none';
+        }
+
+        function shootProjectile(tx, ty, color = '#60a5fa') {
+            gameState.projectiles.push({
+                x: canvas.width / 2,
+                y: canvas.height,
+                targetX: tx,
+                targetY: ty,
+                color: color
+            });
+        }
+
+        function takeDamage(amount) {
+            if (gameState.godMode) {
+                createFloatingText(canvas.width/2, canvas.height/2, "無敵狀態", "#facc15", 20);
+                return;
+            }
+            if (gameState.shield && amount > 5) {
+                gameState.shield = false;
+                playSound('powerup');
+                createFloatingText(canvas.width/2, canvas.height/2, "護盾防禦", "#60a5fa", 30);
+                return;
+            }
+            if (amount > 5) playSound('damage');
+            gameState.hp -= amount;
+            if (gameState.hp <= 0) {
+                gameState.hp = 0;
+                gameOver();
+            }
+            updateHUD();
+        }
+
+        function levelComplete(customTitle) {
+            gameState.status = 'UPGRADE';
+            playSound('powerup');
+            
+            const notify = document.getElementById('level-notify');
+            const notifySub = document.getElementById('level-notify-sub');
+            const notifyTitle = notify.querySelector('h2');
+            
+            if (customTitle) {
+                notifyTitle.innerText = "波次完成";
+                notifySub.innerText = customTitle;
+            } else {
+                notifyTitle.innerText = "區域淨化";
+                notifySub.innerText = "系統升級準備中...";
+            }
+
+            notify.classList.remove('hidden');
+            
+            setTimeout(() => {
+                notify.classList.add('hidden');
+                showUpgradeMenu();
+            }, 2000);
+        }
+
+        function showUpgradeMenu() {
+            const menu = document.getElementById('upgrade-menu');
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+            menu.classList.remove('hidden');
+            menu.classList.add('flex');
+
+            const choices = [];
+            const pool = [...BUFFS];
+            for(let i=0; i<3; i++) {
+                if (pool.length === 0) break;
+                const idx = Math.floor(Math.random() * pool.length);
+                choices.push(pool[idx]);
+                pool.splice(idx, 1);
+            }
+
+            choices.forEach(buff => {
+                const el = document.createElement('div');
+                // Modern card style
+                el.className = "card glass-panel p-6 rounded-2xl w-full md:w-64 flex flex-col items-center text-center cursor-pointer transform transition hover:scale-105 hover:border-yellow-400 border border-white/10";
+                el.innerHTML = `
+                    <div class="text-5xl mb-4 text-yellow-400 filter drop-shadow-lg">✦</div>
+                    <h3 class="text-xl font-bold text-white mb-2 chinese-font">${buff.name}</h3>
+                    <p class="text-sm text-gray-300 font-mono chinese-font">${buff.desc}</p>
+                `;
+                el.onclick = () => selectBuff(buff);
+                container.appendChild(el);
+            });
+        }
+
+        function selectBuff(buff) {
+            playSound('powerup');
+            
+            if (buff.type === 'heal') {
+                gameState.hp = Math.min(gameState.hp + (gameState.maxHp * 0.3), gameState.maxHp);
+            } else if (buff.type === 'stat') {
+                gameState[buff.stat] = buff.id === 'slow' ? gameState[buff.stat] * buff.val : gameState[buff.stat] + buff.val;
+            } else if (buff.type === 'maxhp') {
+                gameState.maxHp += buff.val;
+                gameState.hp += buff.val;
+            } else if (buff.type === 'shield') {
+                gameState.shield = true;
+            }
+
+            document.getElementById('upgrade-menu').classList.add('hidden');
+            
+            if (LEVELS[gameState.currentStageIdx].isInfinite) {
+                gameState.status = 'PLAYING';
+                updateHUD();
+                lastTime = performance.now();
+                requestAnimationFrame(loop);
+            } else {
+                startStage(gameState.currentStageIdx + 1);
+                gameState.status = 'PLAYING';
+                updateHUD();
+                lastTime = performance.now();
+                requestAnimationFrame(loop);
+            }
+        }
+
+        function updateHUD() {
+            const hpPercent = (gameState.hp / gameState.maxHp) * 100;
+            const bar = document.getElementById('hp-bar');
+            bar.style.width = hpPercent + '%';
+            document.getElementById('hp-text').innerText = `${Math.ceil(gameState.hp)}/${gameState.maxHp}`;
+            
+            if (gameState.shield) bar.parentElement.style.boxShadow = "0 0 15px #60a5fa";
+            else bar.parentElement.style.boxShadow = "none";
+
+            const stage = LEVELS[gameState.currentStageIdx];
+            let progress = 0;
+            if (gameState.boss) {
+                document.getElementById('progress-text').innerText = "魔王";
+                document.getElementById('progress-text').parentElement.classList.add('animate-pulse');
+            } else {
+                if (stage.isInfinite) {
+                    document.getElementById('progress-text').innerText = `${gameState.killsInStage} 擊殺`;
+                } else {
+                    progress = stage.targetKills > 0 ? Math.min(100, Math.floor((gameState.killsInStage / stage.targetKills) * 100)) : 0;
+                    document.getElementById('progress-text').innerText = progress + '%';
+                }
+            }
+            document.getElementById('score-display').innerText = gameState.score;
+        }
+
+        function updateBossHUD() {
+            if (!gameState.boss) return;
+            let totalChars = 0;
+            let typedChars = 0;
+            gameState.boss.parts.forEach(p => {
+                totalChars += p.word.length;
+                typedChars += p.typedIndex;
+            });
+            const hpPercent = totalChars > 0 ? ((totalChars - typedChars) / totalChars) * 100 : 0;
+            document.getElementById('boss-hp-bar').style.width = hpPercent + '%';
+        }
+
+        function shakeScreen() {
+            document.body.classList.add('shake');
+            setTimeout(() => document.body.classList.remove('shake'), 400);
+        }
+
+        function gameOver() {
+            gameState.status = 'GAMEOVER';
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.remove('hidden');
+            document.getElementById('game-over-screen').classList.add('flex');
+            document.getElementById('final-score').innerText = gameState.score;
+            document.getElementById('death-reason').innerText = `失守區域：${LEVELS[gameState.currentStageIdx].name}`;
+        }
+
+        function victory() {
+            gameState.status = 'VICTORY';
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('victory-screen').classList.remove('hidden');
+            document.getElementById('victory-screen').classList.add('flex');
+            document.getElementById('victory-score').innerText = gameState.score;
+        }
+
+        function lerp(start, end, t) {
+            return start * (1 - t) + end * t;
+        }
+    </script>
+</body>
+</html>
