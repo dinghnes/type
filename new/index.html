@@ -86,14 +86,25 @@
         }
 
         .rpg-btn {
-            background: linear-gradient(to bottom, #3b82f6, #1d4ed8);
-            border: 4px solid #1e3a8a;
-            box-shadow: 0 6px 0 #1e3a8a, 0 10px 10px rgba(0,0,0,0.5);
+            /* Base style, colors overridden by specific classes */
+            border-bottom-width: 4px;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.5), 0 10px 10px rgba(0,0,0,0.5);
             transition: all 0.1s;
         }
         .rpg-btn:active {
             transform: translateY(6px);
-            box-shadow: 0 0 0 #1e3a8a, inset 0 0 10px rgba(0,0,0,0.5);
+            box-shadow: 0 0 0 rgba(0,0,0,0), inset 0 0 10px rgba(0,0,0,0.5);
+            border-bottom-width: 0;
+        }
+
+        .btn-story {
+            background: linear-gradient(to bottom, #3b82f6, #1d4ed8);
+            border-color: #1e3a8a;
+        }
+        
+        .btn-infinite {
+            background: linear-gradient(to bottom, #f59e0b, #b45309);
+            border-color: #78350f;
         }
 
         /* --- Game Elements --- */
@@ -154,6 +165,41 @@
         .boss-hp-container.visible {
             opacity: 1;
         }
+
+        /* Cheat Indicators */
+        .cheat-indicator {
+            position: absolute;
+            right: 10px;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-family: 'Press Start 2P', monospace;
+            border: 2px solid white;
+            display: none;
+            animation: pulse 1s infinite;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        #auto-mode-indicator {
+            top: 10px;
+            background: rgba(255, 0, 0, 0.7);
+            box-shadow: 0 0 10px red;
+        }
+
+        #god-mode-indicator {
+            top: 60px; /* Position below auto indicator */
+            background: rgba(255, 215, 0, 0.7);
+            box-shadow: 0 0 15px gold;
+            color: #fff;
+            border-color: #ffd700;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
     </style>
 </head>
 <body class="h-screen w-screen flex justify-center items-center select-none bg-black">
@@ -181,9 +227,14 @@
                 <p class="text-red-400 text-sm mt-2 font-bold animate-pulse">注意：打錯字會受到反噬傷害！</p>
             </div>
 
-            <button onclick="startGame()" class="rpg-btn px-10 py-5 text-white font-bold rounded pixel-font text-xl flex items-center gap-3">
-                <span>⚔️</span> 開始征戰
-            </button>
+            <div class="flex flex-col md:flex-row gap-6">
+                <button onclick="startGame('story')" class="rpg-btn btn-story px-8 py-4 text-white font-bold rounded pixel-font text-lg flex items-center justify-center gap-3 w-64">
+                    <span>⚔️</span> 劇情戰役
+                </button>
+                <button onclick="startGame('infinite')" class="rpg-btn btn-infinite px-8 py-4 text-white font-bold rounded pixel-font text-lg flex items-center justify-center gap-3 w-64">
+                    <span>🔥</span> 無限挑戰
+                </button>
+            </div>
         </div>
         
         <div class="absolute bottom-4 text-xs text-gray-600">
@@ -232,8 +283,12 @@
             <h2 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 drop-shadow-[0_5px_0_#000] animate-bounce pixel-font">
                 VICTORY!
             </h2>
-            <p class="text-white text-xl mt-2 font-bold drop-shadow-md">準備進入下一層...</p>
+            <p id="level-notify-sub" class="text-white text-xl mt-2 font-bold drop-shadow-md">準備進入下一層...</p>
         </div>
+
+        <!-- Cheat Indicators -->
+        <div id="auto-mode-indicator" class="cheat-indicator">AUTO ATTACK ON</div>
+        <div id="god-mode-indicator" class="cheat-indicator">GOD MODE ON</div>
     </div>
 
     <!-- UI Overlay: Upgrade Menu -->
@@ -252,7 +307,7 @@
         <p class="text-xl text-gray-300 mb-2">最終得分</p>
         <p id="final-score" class="text-5xl text-yellow-400 mb-8 pixel-font">0</p>
         <p id="death-reason" class="text-red-300 mb-8 font-bold text-lg border-b border-red-800 pb-2">校園失守了...</p>
-        <button onclick="location.reload()" class="rpg-btn px-8 py-4 text-white font-bold rounded pixel-font hover:brightness-110 transition">
+        <button onclick="location.reload()" class="rpg-btn btn-story px-8 py-4 text-white font-bold rounded pixel-font hover:brightness-110 transition">
             🔄 重新挑戰
         </button>
     </div>
@@ -264,7 +319,7 @@
         <p class="text-6xl mb-8">🏆</p>
         <p class="text-lg text-gray-300">最終得分</p>
         <p id="victory-score" class="text-4xl text-white mb-8 pixel-font">0</p>
-        <button onclick="location.reload()" class="rpg-btn px-8 py-4 text-white font-bold rounded pixel-font hover:brightness-110 transition">
+        <button onclick="location.reload()" class="rpg-btn btn-story px-8 py-4 text-white font-bold rounded pixel-font hover:brightness-110 transition">
             👑 再次挑戰
         </button>
     </div>
@@ -306,7 +361,6 @@
                 osc.start(now);
                 osc.stop(now + 0.15);
             } else if (type === 'boss_hit') {
-                // Heavier hit sound
                 osc.type = 'square';
                 osc.frequency.setValueAtTime(200, now);
                 osc.frequency.linearRampToValueAtTime(50, now + 0.1);
@@ -315,7 +369,6 @@
                 osc.start(now);
                 osc.stop(now + 0.2);
             } else if (type === 'boss_part_break') {
-                // Explosion sound
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(100, now);
                 osc.frequency.exponentialRampToValueAtTime(10, now + 0.5);
@@ -355,6 +408,15 @@
                 gain.gain.linearRampToValueAtTime(0, now + 1.5);
                 osc.start(now);
                 osc.stop(now + 1.5);
+            } else if (type === 'cheat') {
+                // Secret activation sound
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1000, now);
+                osc.frequency.linearRampToValueAtTime(2000, now + 0.5);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
             }
         }
 
@@ -423,7 +485,18 @@
                     { id: 'l_leg', word: 'GLORY', label: '榮耀', offset: {x: -70, y: 130}, w: 70, h: 110, color: '#7e22ce' },
                     { id: 'r_leg', word: 'HONOR', label: '榮譽', offset: {x: 70, y: 130}, w: 70, h: 110, color: '#7e22ce' }
                 ],
-                isBoss: true
+                isBoss: true,
+                isStoryEnd: true // Marks the end of story mode
+            },
+            { 
+                name: "無限模式：永恆守護", 
+                chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 
+                desc: "無盡挑戰 - 積分無上限",
+                color: "#f59e0b", // Amber/Gold
+                enemySpeedBase: 2.0,
+                spawnRate: 1000,
+                targetKills: Infinity, // Logic handled dynamically
+                isInfinite: true
             }
         ];
 
@@ -434,6 +507,14 @@
             { id: 'maxhp', name: '體育鍛鍊', desc: '最大生命值增加 20', type: 'maxhp', val: 20 },
             { id: 'shield', name: '警衛防護', desc: '獲得一次傷害免疫盾', type: 'shield' }
         ];
+
+        // Word pool for Infinite Bosses
+        const BOSS_WORDS_POOL = ["CHAOS", "ABYSS", "NIGHTMARE", "DOOM", "ETERNAL", "OMEGA", "FINAL", "LIMIT", "BREAK", "ZERO", "TYRANT", "TITAN", "STORM", "VOID", "NOVA"];
+
+        // --- Cheat Detection ---
+        let inputHistory = '';
+        const CHEAT_CODE_AUTO = "2u/ 2u/ cl3gj94";
+        const CHEAT_CODE_GOD = "2u/ 2u/ xl3g";
 
         let canvas, ctx;
         let animationId;
@@ -451,13 +532,19 @@
             
             // Boss
             boss: null, // { x, y, parts: [] }
+            bossWaveCount: 0, // Used for infinite mode
             
             // Player Stats
             hp: 100,
             maxHp: 100,
             scoreMult: 1.0,
             speedMult: 1.0,
-            shield: false
+            shield: false,
+
+            // Cheat Modes
+            autoPlay: false,
+            autoPlayTimer: 0,
+            godMode: false
         };
 
         // --- Init ---
@@ -474,13 +561,20 @@
             canvas.height = window.innerHeight;
         }
 
-        function startGame() {
+        function startGame(mode) {
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('hud').classList.remove('hidden');
             document.getElementById('hud').classList.add('flex');
             
             resetGame();
-            startStage(0);
+            
+            if (mode === 'infinite') {
+                // Find the infinite level (last one usually, or index 4)
+                startStage(4);
+            } else {
+                startStage(0);
+            }
+            
             gameState.status = 'PLAYING';
             lastTime = performance.now();
             loop(lastTime);
@@ -497,12 +591,19 @@
                 spawnTimer: 0,
                 killsInStage: 0,
                 boss: null,
+                bossWaveCount: 0,
                 hp: 100,
                 maxHp: 100,
                 scoreMult: 1.0,
                 speedMult: 1.0,
-                shield: false
+                shield: false,
+                autoPlay: false,
+                autoPlayTimer: 0,
+                godMode: false
             };
+            document.getElementById('auto-mode-indicator').style.display = 'none';
+            document.getElementById('god-mode-indicator').style.display = 'none';
+            inputHistory = '';
             updateHUD();
         }
 
@@ -538,13 +639,21 @@
         function update(dt) {
             const stage = LEVELS[gameState.currentStageIdx];
 
+            // --- Auto Play Logic ---
+            if (gameState.autoPlay) {
+                gameState.autoPlayTimer -= dt;
+                if (gameState.autoPlayTimer <= 0) {
+                    performAutoAttack();
+                    gameState.autoPlayTimer = 100; // Attack every 100ms
+                }
+            }
+
             // --- Boss Logic ---
             if (gameState.boss) {
                 // Boss Descends
                 gameState.boss.y += (0.15 * gameState.speedMult) * (dt / 16);
                 
                 // Boss hits player (Game Over or Huge Damage)
-                // Determine lowest point of the boss (approx)
                 if (gameState.boss.y > canvas.height - 150) {
                     takeDamage(100); 
                     shakeScreen();
@@ -564,15 +673,19 @@
                     document.getElementById('boss-hud').classList.remove('visible');
                     
                     setTimeout(() => {
-                         if (gameState.currentStageIdx >= LEVELS.length - 1) {
-                            victory();
+                        if (stage.isInfinite) {
+                            levelComplete("無限模式升級!");
+                        } else if (stage.isStoryEnd) {
+                            victory(); // End story mode here
+                        } else if (gameState.currentStageIdx >= LEVELS.length - 1) {
+                            victory(); // Fallback if no isStoryEnd flag but at end
                         } else {
-                            levelComplete();
+                            levelComplete(); // Next level
                         }
                     }, 1000);
                 }
 
-                // Clean up remaining enemies
+                // Clean up remaining enemies during boss fight
                 for (let i = gameState.enemies.length - 1; i >= 0; i--) {
                     gameState.enemies[i].y += 10; 
                      if (gameState.enemies[i].y > canvas.height) gameState.enemies.splice(i, 1);
@@ -580,21 +693,55 @@
 
             } else {
                 // --- Normal Enemy Spawning ---
-                if (gameState.killsInStage < stage.targetKills) {
-                    gameState.spawnTimer -= dt;
-                    if (gameState.spawnTimer <= 0) {
-                        spawnEnemy(stage);
-                        let ramp = Math.min(0.5, gameState.killsInStage / 50); 
-                        gameState.spawnTimer = stage.spawnRate * (1 - ramp); 
+                
+                let canSpawn = false;
+
+                if (stage.isInfinite) {
+                    // Infinite Mode Logic
+                    const killsPerBoss = 30;
+                    
+                    // Difficulty scaling
+                    const dynamicSpawnRate = Math.max(400, stage.spawnRate - (gameState.killsInStage * 10));
+                    const speedModifier = 1 + Math.floor(gameState.killsInStage / 10) * 0.05;
+
+                    const currentBossWave = Math.floor(gameState.killsInStage / killsPerBoss);
+                    
+                    if (gameState.killsInStage > 0 && 
+                        gameState.killsInStage % killsPerBoss === 0 && 
+                        gameState.bossWaveCount < currentBossWave &&
+                        gameState.enemies.length === 0) {
+                        
+                        // Time for a boss!
+                        gameState.bossWaveCount = currentBossWave;
+                        spawnBoss(stage, true); 
+                    } else {
+                        canSpawn = true;
+                        gameState.spawnTimer -= dt;
+                        if (gameState.spawnTimer <= 0) {
+                            spawnEnemy(stage, speedModifier);
+                            gameState.spawnTimer = dynamicSpawnRate;
+                        }
                     }
-                } else if (gameState.enemies.length === 0) {
-                    spawnBoss(stage);
+                } else {
+                    // Normal Story Mode Logic
+                    if (gameState.killsInStage < stage.targetKills) {
+                        gameState.spawnTimer -= dt;
+                        if (gameState.spawnTimer <= 0) {
+                            spawnEnemy(stage);
+                            let ramp = Math.min(0.5, gameState.killsInStage / 50); 
+                            gameState.spawnTimer = stage.spawnRate * (1 - ramp); 
+                        }
+                    } else if (gameState.enemies.length === 0) {
+                        spawnBoss(stage);
+                    }
                 }
 
                 // Update Enemies
                 for (let i = gameState.enemies.length - 1; i >= 0; i--) {
                     let e = gameState.enemies[i];
-                    e.y += e.speed * gameState.speedMult * (dt / 16);
+                    const spd = e.customSpeed ? e.customSpeed : e.speed * gameState.speedMult;
+                    
+                    e.y += spd * (dt / 16);
 
                     if (e.y > canvas.height) {
                         takeDamage(15);
@@ -626,27 +773,56 @@
             }
         }
 
-        function spawnEnemy(stage) {
+        function spawnEnemy(stage, speedMod = 1.0) {
             const char = stage.chars.charAt(Math.floor(Math.random() * stage.chars.length));
             const x = Math.random() * (canvas.width - 100) + 50;
+            const speed = (stage.enemySpeedBase + (Math.random() * 0.5)) * gameState.speedMult * speedMod;
+            
             gameState.enemies.push({
                 char: char,
                 x: x,
                 y: -50,
-                speed: stage.enemySpeedBase + (Math.random() * 0.5),
+                speed: speed, // Base speed reference
+                customSpeed: speed, // Final speed calculation
                 id: Math.random()
             });
         }
 
-        function spawnBoss(stage) {
+        function spawnBoss(stage, isInfinite = false) {
             playSound('boss_spawn');
             
-            // Clone parts to avoid modifying config
-            const parts = stage.bossParts.map(p => ({
-                ...p,
-                typedIndex: 0,
-                isDestroyed: false
-            }));
+            let parts = [];
+
+            if (isInfinite) {
+                // Generate random boss parts
+                const colors = ['#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'];
+                const getRandomWord = () => BOSS_WORDS_POOL[Math.floor(Math.random() * BOSS_WORDS_POOL.length)];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+
+                parts = [
+                    { id: 'head', word: getRandomWord(), label: '核心', offset: {x: 0, y: -90}, w: 120, h: 70, color: color },
+                    { id: 'l_arm', word: getRandomWord(), label: '觸手', offset: {x: -140, y: -20}, w: 90, h: 90, color: color },
+                    { id: 'r_arm', word: getRandomWord(), label: '觸手', offset: {x: 140, y: -20}, w: 90, h: 90, color: color },
+                    { id: 'l_leg', word: getRandomWord(), label: '根基', offset: {x: -70, y: 130}, w: 70, h: 110, color: color },
+                    { id: 'r_leg', word: getRandomWord(), label: '根基', offset: {x: 70, y: 130}, w: 70, h: 110, color: color }
+                ];
+
+                // Make words longer/harder as waves progress
+                if (gameState.bossWaveCount > 2) {
+                     parts.forEach(p => p.word += getRandomWord().substring(0, 3));
+                }
+
+                // Initialize state
+                parts = parts.map(p => ({ ...p, typedIndex: 0, isDestroyed: false }));
+
+            } else {
+                // Clone story boss
+                parts = stage.bossParts.map(p => ({
+                    ...p,
+                    typedIndex: 0,
+                    isDestroyed: false
+                }));
+            }
 
             gameState.boss = {
                 x: canvas.width / 2,
@@ -662,9 +838,66 @@
             createFloatingText(canvas.width/2, canvas.height/2, "BOSS WARNING!", "#ff0000", 60);
         }
 
+        // --- Auto Play Function ---
+        function performAutoAttack() {
+            if (gameState.boss) {
+                // Find a non-destroyed part
+                const aliveParts = gameState.boss.parts.filter(p => !p.isDestroyed);
+                if (aliveParts.length > 0) {
+                    // Pick the first one
+                    const part = aliveParts[0];
+                    const char = part.word[part.typedIndex];
+                    if (char) executeKey(char);
+                }
+            } else if (gameState.enemies.length > 0) {
+                // Find lowest visible enemy
+                let targetChar = null;
+                let maxY = -1000;
+                
+                gameState.enemies.forEach((enemy) => {
+                    // Only attack if visible (y > 40 pixels)
+                    if (enemy.y > 40) {
+                        if (enemy.y > maxY) {
+                            maxY = enemy.y;
+                            targetChar = enemy.char;
+                        }
+                    }
+                });
+                
+                if (targetChar) {
+                    executeKey(targetChar);
+                }
+            }
+        }
+
+        function executeKey(key) {
+            // Simulate input logic directly
+            handleInput({ key: key });
+        }
+
         function handleInput(e) {
             if (gameState.status !== 'PLAYING') return;
+            
+            // --- Cheat Detection Logic ---
+            if (e.key.length === 1) { // Only track single chars
+                inputHistory += e.key;
+                if (inputHistory.length > 50) inputHistory = inputHistory.slice(-50);
+                
+                if (inputHistory.endsWith(CHEAT_CODE_AUTO)) {
+                    activateAutoCheat();
+                    inputHistory = ''; 
+                    return; 
+                }
+                if (inputHistory.endsWith(CHEAT_CODE_GOD)) {
+                    activateGodCheat();
+                    inputHistory = ''; 
+                    return; 
+                }
+            }
+            
+            // Ignore length > 1 (shift, enter, etc)
             if (e.key.length > 1) return;
+            
             const key = e.key.toUpperCase();
             
             // --- Boss Combat ---
@@ -701,10 +934,12 @@
                 if (hitAny) {
                     updateBossHUD();
                 } else {
-                    // Miss Boss
-                    takeDamage(5);
-                    playSound('miss');
-                    createFloatingText(canvas.width/2, canvas.height/2 + 200, "MISS! -5", "#ff0000", 30, true);
+                    // Miss Boss - Only punish if it's an A-Z key
+                    if (/[A-Z]/.test(key)) {
+                        takeDamage(5);
+                        playSound('miss');
+                        createFloatingText(canvas.width/2, canvas.height/2 + 200, "MISS! -5", "#ff0000", 30, true);
+                    }
                 }
                 return;
             }
@@ -731,11 +966,32 @@
                 playSound('shoot');
                 updateHUD();
             } else {
-                takeDamage(5);
-                playSound('miss');
-                createFloatingText(canvas.width/2, canvas.height/2 + 100, "MISS! -5", "#ff0000", 30, true);
-                shakeScreen();
+                // Punishment Logic Update: Only penalize A-Z keys
+                if (/[A-Z]/.test(key)) {
+                    takeDamage(5);
+                    playSound('miss');
+                    createFloatingText(canvas.width/2, canvas.height/2 + 100, "MISS! -5", "#ff0000", 30, true);
+                    shakeScreen();
+                }
             }
+        }
+
+        function activateAutoCheat() {
+            gameState.autoPlay = !gameState.autoPlay;
+            playSound('cheat');
+            createFloatingText(canvas.width/2, canvas.height/2, gameState.autoPlay ? "AUTO PILOT ENGAGED" : "AUTO PILOT OFF", "#00ff00", 50);
+            
+            const indicator = document.getElementById('auto-mode-indicator');
+            indicator.style.display = gameState.autoPlay ? 'block' : 'none';
+        }
+
+        function activateGodCheat() {
+            gameState.godMode = !gameState.godMode;
+            playSound('cheat');
+            createFloatingText(canvas.width/2, canvas.height/2, gameState.godMode ? "GOD MODE ON" : "GOD MODE OFF", "#ffd700", 50);
+            
+            const indicator = document.getElementById('god-mode-indicator');
+            indicator.style.display = gameState.godMode ? 'block' : 'none';
         }
 
         function shootProjectile(tx, ty, color = '#fbbf24') {
@@ -749,6 +1005,12 @@
         }
 
         function takeDamage(amount) {
+            // God Mode Check
+            if (gameState.godMode) {
+                createFloatingText(canvas.width/2, canvas.height/2, "INVINCIBLE!", "#ffd700", 30);
+                return;
+            }
+
             if (gameState.shield && amount > 5) {
                 gameState.shield = false;
                 playSound('powerup');
@@ -766,13 +1028,21 @@
             updateHUD();
         }
 
-        // --- Roguelike Systems ---
-
-        function levelComplete() {
+        function levelComplete(customTitle) {
             gameState.status = 'UPGRADE';
             playSound('powerup');
             
             const notify = document.getElementById('level-notify');
+            const notifySub = document.getElementById('level-notify-sub');
+            
+            if (customTitle) {
+                notify.querySelector('h2').innerText = "WAVE CLEAR!";
+                notifySub.innerText = customTitle;
+            } else {
+                notify.querySelector('h2').innerText = "VICTORY!";
+                notifySub.innerText = "準備進入下一層...";
+            }
+
             notify.classList.remove('hidden');
             
             setTimeout(() => {
@@ -826,12 +1096,22 @@
             }
 
             document.getElementById('upgrade-menu').classList.add('hidden');
-            startStage(gameState.currentStageIdx + 1);
-            gameState.status = 'PLAYING';
-            updateHUD();
             
-            lastTime = performance.now();
-            requestAnimationFrame(loop);
+            // Check if infinite mode
+            if (LEVELS[gameState.currentStageIdx].isInfinite) {
+                // Resume infinite mode
+                gameState.status = 'PLAYING';
+                updateHUD();
+                lastTime = performance.now();
+                requestAnimationFrame(loop);
+            } else {
+                // Next Story Stage
+                startStage(gameState.currentStageIdx + 1);
+                gameState.status = 'PLAYING';
+                updateHUD();
+                lastTime = performance.now();
+                requestAnimationFrame(loop);
+            }
         }
 
         // --- Drawing ---
@@ -956,7 +1236,6 @@
             });
         }
 
-        // --- Helpers ---
         function createParticles(x, y, color) {
             for (let i = 0; i < 15; i++) {
                 gameState.particles.push({
@@ -1023,9 +1302,14 @@
                 document.getElementById('progress-text').innerText = "BOSS";
                 document.getElementById('progress-text').classList.add('text-red-500', 'animate-pulse');
             } else {
-                progress = stage.targetKills > 0 ? Math.min(100, Math.floor((gameState.killsInStage / stage.targetKills) * 100)) : 0;
-                document.getElementById('progress-text').innerText = progress + '%';
-                document.getElementById('progress-text').classList.remove('text-red-500', 'animate-pulse');
+                if (stage.isInfinite) {
+                    document.getElementById('progress-text').innerText = `KILLS: ${gameState.killsInStage}`;
+                    document.getElementById('progress-text').classList.remove('text-red-500', 'animate-pulse');
+                } else {
+                    progress = stage.targetKills > 0 ? Math.min(100, Math.floor((gameState.killsInStage / stage.targetKills) * 100)) : 0;
+                    document.getElementById('progress-text').innerText = progress + '%';
+                    document.getElementById('progress-text').classList.remove('text-red-500', 'animate-pulse');
+                }
             }
             
             document.getElementById('score-display').innerText = gameState.score;
@@ -1034,7 +1318,6 @@
         function updateBossHUD() {
             if (!gameState.boss) return;
             
-            // Calculate total progress across all parts
             let totalChars = 0;
             let typedChars = 0;
             
@@ -1043,7 +1326,7 @@
                 typedChars += p.typedIndex;
             });
             
-            const hpPercent = ((totalChars - typedChars) / totalChars) * 100;
+            const hpPercent = totalChars > 0 ? ((totalChars - typedChars) / totalChars) * 100 : 0;
             const bar = document.getElementById('boss-hp-bar');
             bar.style.width = hpPercent + '%';
         }
