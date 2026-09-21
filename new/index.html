@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>西寧校園守護者 - 勇者攻城篇</title>
+    <title>西寧校園守護者 - 勇者攻城篇 V2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@500;700;900&display=swap');
 
         body {
-            background-color: #0f172a;
+            background-color: #0b0f19;
             color: white;
             font-family: 'Noto Sans TC', sans-serif;
             overflow: hidden;
@@ -21,8 +21,8 @@
         }
 
         #game-canvas {
-            background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background: linear-gradient(to bottom, #0a081d, #1e1b4b, #17122b);
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
         }
 
         .ui-layer {
@@ -40,7 +40,7 @@
 
         /* --- Start Screen Theme: Hero Siege --- */
         .siege-bg {
-            background: radial-gradient(circle at 50% 30%, #2e1065 0%, #000000 90%);
+            background: radial-gradient(circle at 50% 30%, #311042 0%, #05050d 90%);
             overflow: hidden;
         }
         
@@ -52,13 +52,13 @@
             height: 40%;
             background-image: linear-gradient(to top, #000 0%, #1a0b2e 100%);
             clip-path: polygon(
-                0% 100%, 0% 40%, 10% 40%, 10% 20%, 15% 20%, 15% 40%, /* Tower 1 */
-                25% 40%, 25% 60%, 35% 60%, 35% 30%, 45% 30%, 45% 60%, /* Main Gate */
+                0% 100%, 0% 40%, 10% 40%, 10% 20%, 15% 20%, 15% 40%,
+                25% 40%, 25% 60%, 35% 60%, 35% 30%, 45% 30%, 45% 60%,
                 55% 60%, 55% 30%, 65% 30%, 65% 60%, 
-                75% 60%, 85% 60%, 85% 20%, 90% 20%, 90% 40%, 100% 40%, 100% 100% /* Tower 2 */
+                75% 60%, 85% 60%, 85% 20%, 90% 20%, 90% 40%, 100% 40%, 100% 100%
             );
             z-index: -1;
-            opacity: 0.8;
+            opacity: 0.85;
         }
 
         .fire-particle {
@@ -79,14 +79,13 @@
         }
 
         .hero-title {
-            background: linear-gradient(to bottom, #facc15, #b45309);
+            background: linear-gradient(to bottom, #fde047, #f59e0b, #b45309);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 4px 0 #78350f);
         }
 
         .rpg-btn {
-            /* Base style, colors overridden by specific classes */
             border-bottom-width: 4px;
             box-shadow: 0 6px 0 rgba(0,0,0,0.5), 0 10px 10px rgba(0,0,0,0.5);
             transition: all 0.1s;
@@ -107,6 +106,11 @@
             border-color: #78350f;
         }
 
+        .btn-green {
+            background: linear-gradient(to bottom, #10b981, #047857);
+            border-color: #064e3b;
+        }
+
         /* --- Game Elements --- */
         .card {
             transition: transform 0.2s, border-color 0.2s;
@@ -115,35 +119,35 @@
             background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
         }
         .card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-8px);
             border-color: #facc15;
-            box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
+            box-shadow: 0 0 25px rgba(250, 204, 21, 0.4);
         }
 
         .shake {
-            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
         }
 
         @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(3px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+            40%, 60% { transform: translate3d(5px, 0, 0); }
         }
         
         .damage-text {
             position: absolute;
             font-weight: bold;
             font-size: 24px;
-            color: #ff4444;
+            color: #ef4444;
             pointer-events: none;
-            animation: floatUp 1s forwards;
+            animation: floatUp 0.9s forwards;
             text-shadow: 2px 2px 0 #000;
         }
 
         @keyframes floatUp {
             0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            100% { transform: translate(-50%, -150%) scale(1.5); opacity: 0; }
+            100% { transform: translate(-50%, -160%) scale(1.4); opacity: 0; }
         }
 
         .hidden { display: none !important; }
@@ -169,12 +173,13 @@
         /* Cheat Indicators */
         .cheat-indicator {
             position: absolute;
-            right: 10px;
+            right: 12px;
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 8px 16px;
+            border-radius: 6px;
             font-weight: bold;
             font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
             border: 2px solid white;
             display: none;
             animation: pulse 1s infinite;
@@ -182,22 +187,21 @@
         }
 
         #auto-mode-indicator {
-            top: 10px;
-            background: rgba(255, 0, 0, 0.7);
-            box-shadow: 0 0 10px red;
+            top: 60px;
+            background: rgba(220, 38, 38, 0.8);
+            box-shadow: 0 0 12px red;
         }
 
         #god-mode-indicator {
-            top: 60px; /* Position below auto indicator */
-            background: rgba(255, 215, 0, 0.7);
+            top: 100px;
+            background: rgba(234, 179, 8, 0.85);
             box-shadow: 0 0 15px gold;
-            color: #fff;
             border-color: #ffd700;
         }
 
         @keyframes pulse {
             0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.05); }
+            50% { opacity: 0.8; transform: scale(1.04); }
             100% { opacity: 1; transform: scale(1); }
         }
         
@@ -208,9 +212,70 @@
             right: 10px;
             font-family: 'Press Start 2P', monospace;
             font-size: 10px;
-            color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.4);
             pointer-events: none;
             z-index: 100;
+        }
+
+        /* Audio & Control Buttons */
+        .top-btn {
+            background: rgba(17, 24, 39, 0.8);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            transition: all 0.2s;
+            pointer-events: auto;
+            backdrop-filter: blur(4px);
+        }
+        .top-btn:hover {
+            background: rgba(31, 41, 55, 0.95);
+            border-color: #facc15;
+            transform: scale(1.05);
+        }
+
+        /* Fever Border */
+        .fever-active {
+            box-shadow: inset 0 0 50px rgba(250, 204, 21, 0.6), inset 0 0 100px rgba(239, 68, 68, 0.3) !important;
+            animation: feverPulse 0.5s infinite alternate;
+        }
+        @keyframes feverPulse {
+            0% { filter: brightness(1); }
+            100% { filter: brightness(1.15); }
+        }
+
+        /* Print Style for Certificate */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #report-card-container, #report-card-container * {
+                visibility: visible;
+            }
+            #report-card-container {
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 100vw;
+                height: 100vh;
+                background: white !important;
+                color: black !important;
+                padding: 40px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-border {
+                border: 4px double #b45309 !important;
+                background: #fffbeb !important;
+                color: #1f2937 !important;
+            }
         }
     </style>
 </head>
@@ -219,77 +284,119 @@
     <!-- Canvas Layer -->
     <canvas id="game-canvas"></canvas>
 
+    <!-- Top Right Controls (Sound, Fullscreen) -->
+    <div class="fixed top-3 right-3 z-50 flex items-center gap-2">
+        <button id="btn-mute" onclick="toggleAudio()" class="top-btn flex items-center gap-1">
+            <span id="mute-icon">🔊</span> <span id="mute-text">BGM/音效</span>
+        </button>
+        <button onclick="toggleFullscreen()" class="top-btn">⛶ 全螢幕</button>
+    </div>
+
     <!-- UI Overlay: Start Screen (Hero Siege Theme) -->
-    <div id="start-screen" class="ui-layer siege-bg z-50 pointer-events-auto">
+    <div id="start-screen" class="ui-layer siege-bg z-40 pointer-events-auto">
         <!-- Castle Silhouette -->
         <div class="castle-silhouette"></div>
         
-        <!-- Fire Particles Container (Populated via JS) -->
+        <!-- Fire Particles Container -->
         <div id="fire-container" class="absolute w-full h-full pointer-events-none"></div>
 
         <div class="relative z-10 text-center flex flex-col items-center max-w-4xl px-4">
-            <div class="mb-2 text-yellow-500 font-bold tracking-[0.5em] text-sm uppercase">Typing RPG</div>
-            <h1 class="text-5xl md:text-7xl mb-6 pixel-font hero-title leading-tight">
+            <div class="mb-2 text-yellow-500 font-bold tracking-[0.4em] text-xs uppercase pixel-font">Xining Typing RPG • V2.0</div>
+            <h1 class="text-5xl md:text-7xl mb-5 pixel-font hero-title leading-tight">
                 西寧<br>校園守護者
             </h1>
             
-            <div class="bg-black/60 p-6 rounded-xl backdrop-blur-md border border-yellow-500/30 mb-8 w-full shadow-[0_0_20px_rgba(0,0,0,0.8)]">
-                <h2 class="text-2xl text-yellow-400 font-bold mb-3 pixel-font drop-shadow-md">⚠️ 校園緊急警報 ⚠️</h2>
-                <div class="flex flex-col md:flex-row gap-6 items-center">
-                    <div class="text-left flex-1">
-                        <p class="text-gray-200 mb-3 leading-relaxed text-lg">
-                            來自異次元的 <span class="text-red-400 font-bold text-xl">字母魔軍</span> 正在入侵！<br>
-                            博學、群英與耕心樓岌岌可危...
+            <div class="bg-black/75 p-6 rounded-xl backdrop-blur-md border border-yellow-500/30 mb-6 w-full shadow-[0_0_30px_rgba(0,0,0,0.9)]">
+                <h2 class="text-2xl text-yellow-400 font-bold mb-3 pixel-font drop-shadow-md">⚠️ 校園緊急守護任務 ⚠️</h2>
+                <div class="flex flex-col md:flex-row gap-6 items-center text-left">
+                    <div class="flex-1">
+                        <p class="text-gray-200 mb-2 leading-relaxed text-base">
+                            來自異次元的 <span class="text-red-400 font-bold text-lg">字母魔軍</span> 正在入侵！<br>
+                            博學樓、群英樓與耕心樓需要神聖護盾...
                         </p>
-                        <p class="text-blue-300 mb-4 leading-relaxed">
-                            唯有喚醒你指尖的 <span class="text-yellow-300 font-bold text-xl">「鍵盤神力」</span>，<br>
-                            才能擊碎落下的符文，拯救大家！
+                        <p class="text-blue-300 mb-3 leading-relaxed text-sm">
+                            喚醒指尖的 <span class="text-yellow-300 font-bold text-base">「鍵盤肌肉記憶」</span>，<br>
+                            手指穩坐基準鍵，逐層擊退入侵者！
                         </p>
+                        <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono">
+                            <div class="bg-blue-900/40 p-2 rounded border border-blue-500/40">
+                                <div class="text-yellow-300 font-bold mb-1">博學樓 💀</div>
+                                <div class="text-gray-300">中排基準鍵</div>
+                            </div>
+                            <div class="bg-purple-900/40 p-2 rounded border border-purple-500/40">
+                                <div class="text-yellow-300 font-bold mb-1">群英樓 🦇</div>
+                                <div class="text-gray-300">中排+上排累加</div>
+                            </div>
+                            <div class="bg-green-900/40 p-2 rounded border border-green-500/40">
+                                <div class="text-yellow-300 font-bold mb-1">耕心樓 🟢</div>
+                                <div class="text-gray-300">全鍵位出擊</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-sm text-gray-400 bg-black/40 p-4 rounded-lg border border-white/10 w-full md:w-auto text-left">
-                        <p class="mb-2">⚔️ <span class="text-white font-bold">攻擊：</span> 敲擊對應字母消滅敵人</p>
-                        <p class="mb-2">🛡️ <span class="text-white font-bold">升級：</span> 每層過關可獲得強力祝福</p>
-                        <p class="text-red-400 font-bold mt-2 animate-pulse flex items-center">
-                            <span class="text-xl mr-2">☠️</span> 警告：按錯鍵會受到反噬傷害！
+                    <div class="text-xs text-gray-400 bg-black/50 p-3 rounded-lg border border-white/10 w-full md:w-64 space-y-1.5">
+                        <p>⚔️ <span class="text-white font-bold">攻擊：</span> 敲對字母發射魔法飛彈</p>
+                        <p>⚡ <span class="text-yellow-300 font-bold">連擊：</span> 20 Combo 觸發聖光狂熱雙倍分</p>
+                        <p>❄️ <span class="text-cyan-300 font-bold">掉寶：</span> 擊落符文怪獲冰凍/爆炎/回血</p>
+                        <p>🛡️ <span class="text-green-300 font-bold">升級：</span> 過關領取強大神聖天賦</p>
+                        <p class="text-red-400 font-bold animate-pulse pt-1 border-t border-white/10">
+                            ☠️ 連續失誤會受到反噬傷害！
                         </p>
                     </div>
                 </div>
-                <p class="text-center text-yellow-500 mt-4 font-bold text-lg pixel-font">你準備好成為傳說中的鍵盤勇者了嗎？</p>
             </div>
 
-            <div class="flex flex-col md:flex-row gap-6">
-                <button onclick="startGame('story')" class="rpg-btn btn-story px-8 py-4 text-white font-bold rounded pixel-font text-lg flex items-center justify-center gap-3 w-64 hover:scale-105 transition-transform">
+            <div class="flex flex-col md:flex-row gap-5">
+                <button onclick="startGame('story')" class="rpg-btn btn-story px-8 py-4 text-white font-bold rounded pixel-font text-base flex items-center justify-center gap-3 w-60 hover:scale-105 transition-transform">
                     <span>⚔️</span> 劇情戰役
                 </button>
-                <button onclick="startGame('infinite')" class="rpg-btn btn-infinite px-8 py-4 text-white font-bold rounded pixel-font text-lg flex items-center justify-center gap-3 w-64 hover:scale-105 transition-transform">
+                <button onclick="startGame('infinite')" class="rpg-btn btn-infinite px-8 py-4 text-white font-bold rounded pixel-font text-base flex items-center justify-center gap-3 w-60 hover:scale-105 transition-transform">
                     <span>🔥</span> 無限挑戰
                 </button>
             </div>
+            
+            <p class="text-xs text-gray-500 mt-4">西寧國小電腦教室教學專用 • 盲打指法養成挑戰</p>
         </div>
         
-        <div class="absolute bottom-4 text-xs text-gray-600">
-            按鍵即攻擊 • 守護校園
+        <div class="absolute bottom-3 text-xs text-gray-600">
+            按鍵即攻擊 • 請務必切換為英數半形模式
         </div>
     </div>
 
     <!-- UI Overlay: HUD -->
     <div id="hud" class="ui-layer !justify-between !items-start p-4 hidden">
-        <div class="flex justify-between w-full max-w-5xl mx-auto items-end bg-black/30 p-2 rounded-xl backdrop-blur-sm border border-white/10">
+        <div class="flex justify-between w-full max-w-5xl mx-auto items-end bg-black/40 p-3 rounded-xl backdrop-blur-md border border-white/10">
             <!-- HP Bar -->
             <div class="flex flex-col gap-1 w-1/3">
-                <div class="flex justify-between">
-                    <div class="text-red-400 pixel-font text-xs">HP</div>
+                <div class="flex justify-between items-center">
+                    <div class="text-red-400 pixel-font text-xs flex items-center gap-1.5">
+                        <span>HP</span>
+                        <span id="shield-indicator" class="hidden text-blue-400 font-bold text-[10px] bg-blue-950 px-1.5 py-0.5 rounded border border-blue-500">🛡️ 聖盾</span>
+                    </div>
                     <div id="hp-text" class="text-white text-xs font-mono">100/100</div>
                 </div>
-                <div class="w-full h-6 bg-gray-900 border-2 border-gray-600 rounded relative overflow-hidden">
+                <div class="w-full h-5 bg-gray-900 border-2 border-gray-600 rounded relative overflow-hidden">
                     <div id="hp-bar" class="h-full bg-gradient-to-r from-red-800 to-red-500 transition-all duration-300" style="width: 100%;"></div>
                 </div>
             </div>
             
-            <!-- Stage Info -->
-            <div class="text-center absolute left-1/2 -translate-x-1/2 top-4">
-                <div id="stage-name" class="text-2xl font-bold text-yellow-300 tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">西寧博學樓</div>
-                <div class="text-xs text-gray-400 mt-1 bg-black/50 px-2 rounded">進度: <span id="progress-text">0%</span></div>
+            <!-- Stage Info & Combo -->
+            <div class="text-center absolute left-1/2 -translate-x-1/2 top-3 flex flex-col items-center">
+                <div id="stage-name" class="text-2xl font-bold text-yellow-300 tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">第一關：西寧博學樓</div>
+                <div class="flex items-center gap-2 mt-1">
+                    <div class="text-xs text-gray-300 bg-black/60 px-2.5 py-0.5 rounded border border-white/10">進度: <span id="progress-text" class="font-bold">0%</span></div>
+                    <!-- Combo Display -->
+                    <div id="combo-badge" class="hidden text-xs pixel-font px-2.5 py-0.5 rounded font-black text-yellow-300 bg-gradient-to-r from-yellow-950 to-orange-950 border border-yellow-500 shadow-[0_0_10px_rgba(250,204,21,0.5)] animate-pulse">
+                        0 COMBO!
+                    </div>
+                    <!-- Fever Display -->
+                    <div id="fever-badge" class="hidden text-xs pixel-font px-2.5 py-0.5 rounded font-black text-white bg-gradient-to-r from-red-600 via-yellow-500 to-red-600 border border-yellow-300 shadow-[0_0_15px_rgba(239,68,68,0.8)] animate-bounce">
+                        🔥 FEVER x2!
+                    </div>
+                    <!-- CapsLock Alert in HUD -->
+                    <div id="caps-badge" class="hidden text-[10px] pixel-font px-1.5 py-0.5 rounded font-bold text-red-300 bg-red-950 border border-red-500">
+                        CAPS ON
+                    </div>
+                </div>
             </div>
 
             <!-- Score -->
@@ -299,21 +406,21 @@
             </div>
         </div>
         
-        <!-- Boss HP Bar (Hidden by default) -->
+        <!-- Boss HP Bar -->
         <div id="boss-hud" class="boss-hp-container pointer-events-none">
-            <h3 class="text-red-500 font-bold pixel-font text-xl mb-1 drop-shadow-md tracking-widest animate-pulse">⚠️ BOSS 降臨</h3>
-            <div class="w-full h-8 bg-gray-900 border-4 border-red-900 rounded relative overflow-hidden">
+            <h3 class="text-red-500 font-bold pixel-font text-xl mb-1 drop-shadow-md tracking-widest animate-pulse">⚠️ 魔王降臨 ⚠️</h3>
+            <div class="w-full h-7 bg-gray-900 border-4 border-red-900 rounded relative overflow-hidden">
                 <div id="boss-hp-bar" class="h-full bg-gradient-to-r from-red-700 to-red-500 transition-all duration-200" style="width: 100%;"></div>
             </div>
-            <div class="text-xs text-red-300 mt-1">摧毀魔王的 5 個部位以獲勝！</div>
+            <div class="text-xs text-red-300 mt-1 font-bold">摧毀魔王的所有部位以守護校園！</div>
         </div>
         
         <!-- Level Up Notification -->
         <div id="level-notify" class="absolute top-1/3 w-full text-center hidden z-50">
-            <h2 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 drop-shadow-[0_5px_0_#000] animate-bounce pixel-font">
+            <h2 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 drop-shadow-[0_5px_0_#000] animate-bounce pixel-font">
                 VICTORY!
             </h2>
-            <p id="level-notify-sub" class="text-white text-xl mt-2 font-bold drop-shadow-md">準備進入下一層...</p>
+            <p id="level-notify-sub" class="text-white text-xl mt-3 font-bold drop-shadow-md">區域守護成功，準備升級...</p>
         </div>
 
         <!-- Cheat Indicators -->
@@ -321,52 +428,118 @@
         <div id="god-mode-indicator" class="cheat-indicator">GOD MODE ON</div>
     </div>
 
+    <!-- UI Overlay: IME Warning Modal -->
+    <div id="ime-modal" class="fixed inset-0 bg-red-950/85 z-[100] hidden flex flex-col items-center justify-center p-6 text-center backdrop-blur-md">
+        <div class="pixel-font text-6xl mb-4 text-yellow-400 animate-bounce">⚠️</div>
+        <h2 class="text-3xl md:text-4xl text-yellow-400 font-black mb-4 pixel-font drop-shadow-lg">
+            偵測到中文輸入法！
+        </h2>
+        <div class="bg-black/70 p-6 rounded-xl border-2 border-red-500 max-w-lg mb-6 text-left space-y-3">
+            <p class="text-lg text-white font-bold">
+                當前鍵盤處於注音/中文輸入狀態，攻擊無法送達！
+            </p>
+            <p class="text-yellow-300 text-sm">
+                👉 請按一下鍵盤上的 <span class="bg-gray-700 px-2 py-1 rounded text-white font-mono font-bold">Shift</span> 鍵，或按 <span class="bg-gray-700 px-2 py-1 rounded text-white font-mono font-bold">Ctrl + Space</span> 切換為<span class="text-red-400 font-bold underline">「英數（半形）」</span>模式。
+            </p>
+            <p class="text-xs text-gray-400">
+                （遊戲已自動暫停，切換為英文輸入法後將立即恢復）
+            </p>
+        </div>
+        <button onclick="dismissImeModal()" class="rpg-btn btn-story px-6 py-3 text-white font-bold rounded pixel-font text-sm">
+            已切換，繼續守護！
+        </button>
+    </div>
+
     <!-- Version Display -->
-    <div id="version-display">V1.2</div>
+    <div id="version-display">V2.0 PRO</div>
 
     <!-- UI Overlay: Upgrade Menu -->
-    <div id="upgrade-menu" class="ui-layer bg-black/95 z-40 hidden pointer-events-auto backdrop-blur">
+    <div id="upgrade-menu" class="ui-layer bg-black/90 z-40 hidden pointer-events-auto backdrop-blur-md">
         <h2 class="text-4xl text-yellow-500 mb-2 font-bold pixel-font">戰利品選擇</h2>
-        <p class="text-gray-400 mb-10">選擇一種能力強化你的英雄...</p>
+        <p class="text-gray-300 mb-8">選擇一項神聖祝福強化你的守護力量...</p>
         
         <div id="cards-container" class="flex flex-col md:flex-row gap-6 p-4">
-            <!-- Cards will be injected here via JS -->
+            <!-- Injected via JS -->
         </div>
     </div>
 
-    <!-- UI Overlay: Game Over -->
-    <div id="game-over-screen" class="ui-layer bg-red-950/95 z-50 hidden pointer-events-auto">
-        <h1 class="text-6xl text-red-500 mb-4 pixel-font drop-shadow-[0_4px_0_#000]">DEFEATED</h1>
-        <p class="text-xl text-gray-300 mb-2">最終得分</p>
-        <p id="final-score" class="text-5xl text-yellow-400 mb-8 pixel-font">0</p>
-        <p id="death-reason" class="text-red-300 mb-8 font-bold text-lg border-b border-red-800 pb-2">校園失守了...</p>
-        <button onclick="location.reload()" class="rpg-btn btn-story px-8 py-4 text-white font-bold rounded pixel-font hover:brightness-110 transition">
-            🔄 重新挑戰
-        </button>
-    </div>
+    <!-- UI Overlay: Comprehensive Educational Report Card (Game Over / Victory) -->
+    <div id="report-card-container" class="ui-layer bg-black/95 z-50 hidden pointer-events-auto overflow-y-auto p-4 backdrop-blur-lg">
+        <div class="print-border bg-gradient-to-b from-gray-900 to-black p-8 rounded-2xl border-4 border-yellow-500/60 max-w-2xl w-full text-center shadow-[0_0_50px_rgba(234,179,8,0.3)] my-auto">
+            
+            <div class="text-xs text-yellow-500 font-bold tracking-[0.3em] uppercase mb-1">臺中市清水區西寧國小 • 電腦課鍵盤修煉證書</div>
+            <h1 id="result-title" class="text-4xl md:text-5xl font-black pixel-font text-yellow-400 mb-3 drop-shadow-md">VICTORY!</h1>
+            <p id="result-subtitle" class="text-sm text-gray-300 mb-6">成功守護西寧校園博學、群英與耕心樓！</p>
+            
+            <!-- Rank Badge -->
+            <div class="inline-flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/40 px-6 py-2 rounded-full mb-6">
+                <span class="text-2xl">🎖️</span>
+                <span id="rank-badge" class="pixel-font text-xl font-black text-yellow-300">S 級 • 傳奇校園守護者</span>
+            </div>
 
-    <!-- UI Overlay: Victory -->
-    <div id="victory-screen" class="ui-layer bg-yellow-900/95 z-50 hidden pointer-events-auto">
-        <h1 class="text-5xl text-yellow-400 mb-4 pixel-font drop-shadow-[0_4px_0_#000]">LEGENDARY!</h1>
-        <p class="text-xl text-gray-100 mb-4">你成功守護了西寧校園！</p>
-        <p class="text-6xl mb-8">🏆</p>
-        <p class="text-lg text-gray-300">最終得分</p>
-        <p id="victory-score" class="text-4xl text-white mb-8 pixel-font">0</p>
-        <button onclick="location.reload()" class="rpg-btn btn-story px-8 py-4 text-white font-bold rounded pixel-font hover:brightness-110 transition">
-            👑 再次挑戰
-        </button>
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-left">
+                <div class="bg-white/5 p-4 rounded-xl border border-white/10 text-center">
+                    <div class="text-xs text-gray-400 mb-1">⌨️ 打字速度</div>
+                    <div id="stat-wpm" class="text-2xl font-black pixel-font text-yellow-400">38</div>
+                    <div class="text-[10px] text-gray-500">WPM (字/分)</div>
+                </div>
+                <div class="bg-white/5 p-4 rounded-xl border border-white/10 text-center">
+                    <div class="text-xs text-gray-400 mb-1">🎯 準確率</div>
+                    <div id="stat-acc" class="text-2xl font-black pixel-font text-green-400">96%</div>
+                    <div class="text-[10px] text-gray-500">Accuracy</div>
+                </div>
+                <div class="bg-white/5 p-4 rounded-xl border border-white/10 text-center">
+                    <div class="text-xs text-gray-400 mb-1">⚡ 最高連擊</div>
+                    <div id="stat-combo" class="text-2xl font-black pixel-font text-cyan-400">45</div>
+                    <div class="text-[10px] text-gray-500">Max Combo</div>
+                </div>
+                <div class="bg-white/5 p-4 rounded-xl border border-white/10 text-center">
+                    <div class="text-xs text-gray-400 mb-1">🏆 最終總分</div>
+                    <div id="stat-score" class="text-2xl font-black pixel-font text-purple-400">9500</div>
+                    <div class="text-[10px] text-gray-500">Score</div>
+                </div>
+            </div>
+
+            <!-- Detailed Analysis & Key Diagnosis -->
+            <div class="bg-black/60 p-4 rounded-xl border border-white/10 mb-6 text-left text-xs space-y-2">
+                <div class="flex justify-between border-b border-white/10 pb-2">
+                    <span class="text-gray-400">總敲擊次數：</span>
+                    <span id="stat-total-keys" class="font-mono text-white font-bold">120 次</span>
+                </div>
+                <div class="flex justify-between border-b border-white/10 pb-2">
+                    <span class="text-gray-400">命中次數 / 失誤次數：</span>
+                    <span id="stat-hits-misses" class="font-mono text-white font-bold">115 / 5</span>
+                </div>
+                <div class="flex justify-between items-center pt-1">
+                    <span class="text-red-400 font-bold">🔍 指法弱點鍵診斷：</span>
+                    <span id="stat-top-mistakes" class="font-mono text-yellow-300 font-bold text-sm">無失誤（完美表現！）</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-4 justify-center no-print">
+                <button onclick="location.reload()" class="rpg-btn btn-story px-6 py-3 text-white font-bold rounded pixel-font text-sm flex items-center gap-2">
+                    <span>↺</span> 再次挑戰
+                </button>
+                <button onclick="window.print()" class="rpg-btn btn-green px-6 py-3 text-white font-bold rounded pixel-font text-sm flex items-center gap-2">
+                    <span>🖨️</span> 列印 / 截圖證書
+                </button>
+            </div>
+            <div class="text-[11px] text-gray-500 mt-4 no-print">點擊「列印 / 截圖證書」即可儲存為 PDF 或截圖上傳繳交作業</div>
+        </div>
     </div>
 
     <script>
-        // --- Version Control ---
-        const GAME_VERSION = "V1.2";
+        // --- Version & Configuration ---
+        const GAME_VERSION = "V2.0 PRO";
         document.getElementById('version-display').innerText = GAME_VERSION;
 
-        // --- Visual Effects for Start Screen ---
+        // --- Start Screen Visual Effects ---
         function initStartScreenEffects() {
             const container = document.getElementById('fire-container');
-            // Create fire particles
-            for(let i=0; i<30; i++) {
+            container.innerHTML = '';
+            for(let i=0; i<32; i++) {
                 const p = document.createElement('div');
                 p.className = 'fire-particle';
                 p.style.left = Math.random() * 100 + '%';
@@ -377,178 +550,297 @@
         }
         initStartScreenEffects();
 
-        // --- Audio System ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+        // --- Web Audio API Synthesizer & 8-bit BGM Engine ---
+        let audioCtx = null;
+        let isAudioMuted = false;
+        let bgmTimer = null;
+        let bgmStep = 0;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            document.getElementById('mute-icon').innerText = isAudioMuted ? '🔇' : '🔊';
+            document.getElementById('mute-text').innerText = isAudioMuted ? '靜音中' : 'BGM/音效';
+            if (isAudioMuted) {
+                stopBGM();
+            } else {
+                initAudio();
+                startBGM();
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen().catch(() => {});
+            }
+        }
+
+        function playSound(type, opt = {}) {
+            if (isAudioMuted) return;
+            initAudio();
+            const now = audioCtx.currentTime;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
-            const now = audioCtx.currentTime;
-            
             if (type === 'shoot') {
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(600, now);
+                const baseFreq = opt.combo ? Math.min(1200, 500 + opt.combo * 25) : 550;
+                osc.frequency.setValueAtTime(baseFreq, now);
                 osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
-                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.setValueAtTime(0.12, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                 osc.start(now);
                 osc.stop(now + 0.15);
+            } else if (type === 'hit_impact') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(80, now + 0.12);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.12);
+                osc.start(now);
+                osc.stop(now + 0.12);
             } else if (type === 'boss_hit') {
                 osc.type = 'square';
-                osc.frequency.setValueAtTime(200, now);
-                osc.frequency.linearRampToValueAtTime(50, now + 0.1);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                osc.frequency.setValueAtTime(250, now);
+                osc.frequency.linearRampToValueAtTime(60, now + 0.1);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.15);
                 osc.start(now);
-                osc.stop(now + 0.2);
+                osc.stop(now + 0.15);
             } else if (type === 'boss_part_break') {
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(100, now);
-                osc.frequency.exponentialRampToValueAtTime(10, now + 0.5);
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.exponentialRampToValueAtTime(20, now + 0.5);
                 gain.gain.setValueAtTime(0.5, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
                 osc.start(now);
                 osc.stop(now + 0.5);
             } else if (type === 'miss') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.linearRampToValueAtTime(100, now + 0.1);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(90, now + 0.15);
                 gain.gain.setValueAtTime(0.2, now);
-                gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                gain.gain.linearRampToValueAtTime(0, now + 0.15);
                 osc.start(now);
-                osc.stop(now + 0.1);
+                osc.stop(now + 0.15);
             } else if (type === 'powerup') {
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.linearRampToValueAtTime(800, now + 0.2);
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                osc.frequency.setValueAtTime(350, now);
+                osc.frequency.linearRampToValueAtTime(900, now + 0.25);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.25);
                 osc.start(now);
-                osc.stop(now + 0.2);
+                osc.stop(now + 0.25);
             } else if (type === 'damage') {
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(100, now);
-                osc.frequency.linearRampToValueAtTime(50, now + 0.3);
-                gain.gain.setValueAtTime(0.3, now);
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.3);
+                gain.gain.setValueAtTime(0.35, now);
                 gain.gain.linearRampToValueAtTime(0, now + 0.3);
                 osc.start(now);
                 osc.stop(now + 0.3);
             } else if (type === 'boss_spawn') {
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(80, now);
-                osc.frequency.linearRampToValueAtTime(40, now + 1.5);
+                osc.frequency.setValueAtTime(90, now);
+                osc.frequency.linearRampToValueAtTime(45, now + 1.2);
                 gain.gain.setValueAtTime(0.6, now);
-                gain.gain.linearRampToValueAtTime(0, now + 1.5);
+                gain.gain.linearRampToValueAtTime(0, now + 1.2);
                 osc.start(now);
-                osc.stop(now + 1.5);
+                osc.stop(now + 1.2);
+            } else if (type === 'fever') {
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.type = 'triangle';
+                    o.frequency.setValueAtTime(freq, now + i * 0.08);
+                    g.gain.setValueAtTime(0.15, now + i * 0.08);
+                    g.gain.linearRampToValueAtTime(0, now + i * 0.08 + 0.15);
+                    o.start(now + i * 0.08);
+                    o.stop(now + i * 0.08 + 0.15);
+                });
             } else if (type === 'cheat') {
-                // Secret activation sound
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(1000, now);
-                osc.frequency.linearRampToValueAtTime(2000, now + 0.5);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.frequency.linearRampToValueAtTime(2000, now + 0.4);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.4);
                 osc.start(now);
-                osc.stop(now + 0.5);
+                osc.stop(now + 0.4);
             }
         }
 
-        // --- Game Config & State ---
+        // --- 8-Bit Chiptune BGM Generator ---
+        const BGM_NOTES = [
+            261.63, 261.63, 329.63, 392.00,
+            349.23, 349.23, 440.00, 523.25,
+            392.00, 392.00, 493.88, 587.33,
+            329.63, 293.66, 261.63, 392.00
+        ];
+        const BASS_NOTES = [
+            130.81, 130.81, 174.61, 174.61, 196.00, 196.00, 164.81, 196.00
+        ];
+
+        function startBGM() {
+            if (bgmTimer || isAudioMuted) return;
+            initAudio();
+            bgmStep = 0;
+            bgmTimer = setInterval(() => {
+                if (isAudioMuted || !audioCtx || gameState.status !== 'PLAYING') return;
+                const now = audioCtx.currentTime;
+                
+                // Melody
+                const mFreq = BGM_NOTES[bgmStep % BGM_NOTES.length];
+                const mOsc = audioCtx.createOscillator();
+                const mGain = audioCtx.createGain();
+                mOsc.connect(mGain);
+                mGain.connect(audioCtx.destination);
+                mOsc.type = 'square';
+                mOsc.frequency.setValueAtTime(mFreq, now);
+                mGain.gain.setValueAtTime(0.02, now);
+                mGain.gain.linearRampToValueAtTime(0, now + 0.12);
+                mOsc.start(now);
+                mOsc.stop(now + 0.12);
+
+                // Bass
+                if (bgmStep % 2 === 0) {
+                    const bFreq = BASS_NOTES[(Math.floor(bgmStep / 2)) % BASS_NOTES.length];
+                    const bOsc = audioCtx.createOscillator();
+                    const bGain = audioCtx.createGain();
+                    bOsc.connect(bGain);
+                    bGain.connect(audioCtx.destination);
+                    bOsc.type = 'triangle';
+                    bOsc.frequency.setValueAtTime(bFreq, now);
+                    bGain.gain.setValueAtTime(0.04, now);
+                    bGain.gain.linearRampToValueAtTime(0, now + 0.2);
+                    bOsc.start(now);
+                    bOsc.stop(now + 0.2);
+                }
+
+                bgmStep++;
+            }, 180);
+        }
+
+        function stopBGM() {
+            if (bgmTimer) {
+                clearInterval(bgmTimer);
+                bgmTimer = null;
+            }
+        }
+
+        // --- Pedagogical Level Design (Cumulative Key Progressions) ---
         const LEVELS = [
             { 
                 name: "第一關：西寧博學樓", 
                 chars: "ASDFGHJKL", 
-                desc: "中排鍵位 - 骷髏兵入侵",
+                desc: "中排基準鍵 • 骷髏兵入侵",
+                monsterType: "skeleton",
                 color: "#3b82f6", 
-                enemySpeedBase: 1.5,
-                spawnRate: 1200,
-                targetKills: 20,
+                enemySpeedBase: 1.4,
+                spawnRate: 1300,
+                targetKills: 25,
                 bossParts: [
-                    { id: 'head', word: 'FLASH', label: '頭部', offset: {x: 0, y: -80}, w: 100, h: 60, color: '#facc15' },
-                    { id: 'l_arm', word: 'ASK', label: '左手', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#60a5fa' },
-                    { id: 'r_arm', word: 'ADD', label: '右手', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#60a5fa' },
-                    { id: 'l_leg', word: 'SAD', label: '左腳', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#3b82f6' },
-                    { id: 'r_leg', word: 'GLAD', label: '右腳', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#3b82f6' }
+                    { id: 'head', word: 'FLASH', label: '核心頭部', offset: {x: 0, y: -80}, w: 110, h: 60, color: '#facc15' },
+                    { id: 'l_arm', word: 'ASK', label: '左神盾', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#60a5fa' },
+                    { id: 'r_arm', word: 'ADD', label: '右神刃', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#60a5fa' },
+                    { id: 'l_leg', word: 'SAD', label: '左腿座', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#3b82f6' },
+                    { id: 'r_leg', word: 'GLAD', label: '右腿座', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#3b82f6' }
                 ]
             },
             { 
                 name: "第二關：西寧群英樓", 
-                chars: "QWERTYUIOP", 
-                desc: "上排鍵位 - 蝙蝠來襲",
+                chars: "ASDFGHJKLQWERTYUIOP", 
+                desc: "中排 + 上排擴充 • 蝙蝠夜襲",
+                monsterType: "bat",
                 color: "#ef4444", 
-                enemySpeedBase: 1.8,
-                spawnRate: 1000,
-                targetKills: 25,
+                enemySpeedBase: 1.6,
+                spawnRate: 1100,
+                targetKills: 35,
                 bossParts: [
-                    { id: 'head', word: 'POWER', label: '頭部', offset: {x: 0, y: -80}, w: 100, h: 60, color: '#f87171' },
-                    { id: 'l_arm', word: 'TOP', label: '左手', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#ef4444' },
-                    { id: 'r_arm', word: 'POP', label: '右手', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#ef4444' },
-                    { id: 'l_leg', word: 'OUT', label: '左腳', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#dc2626' },
-                    { id: 'r_leg', word: 'TRY', label: '右腳', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#dc2626' }
+                    { id: 'head', word: 'POWER', label: '暗黑頭部', offset: {x: 0, y: -80}, w: 110, h: 60, color: '#f87171' },
+                    { id: 'l_arm', word: 'TOP', label: '左魔翼', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#ef4444' },
+                    { id: 'r_arm', word: 'POP', label: '右魔翼', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#ef4444' },
+                    { id: 'l_leg', word: 'OUT', label: '左魔爪', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#dc2626' },
+                    { id: 'r_leg', word: 'TRY', label: '右魔爪', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#dc2626' }
                 ]
             },
             { 
                 name: "第三關：西寧耕心樓", 
-                chars: "ZXCVBNM", 
-                desc: "下排鍵位 - 史萊姆突擊",
-                color: "#22c55e", 
-                enemySpeedBase: 2.0,
-                spawnRate: 900,
-                targetKills: 25,
+                chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 
+                desc: "全鍵位出擊 • 史萊姆突擊",
+                monsterType: "slime",
+                color: "#10b981", 
+                enemySpeedBase: 1.8,
+                spawnRate: 950,
+                targetKills: 40,
                 bossParts: [
-                    { id: 'head', word: 'ZXCV', label: '頭部', offset: {x: 0, y: -80}, w: 100, h: 60, color: '#4ade80' },
-                    { id: 'l_arm', word: 'VBNM', label: '左手', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#22c55e' },
-                    { id: 'r_arm', word: 'MNBV', label: '右手', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#22c55e' },
-                    { id: 'l_leg', word: 'VCXZ', label: '左腳', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#16a34a' },
-                    { id: 'r_leg', word: 'BCNM', label: '右腳', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#16a34a' }
+                    { id: 'head', word: 'ZXCV', label: '主控頭部', offset: {x: 0, y: -80}, w: 110, h: 60, color: '#4ade80' },
+                    { id: 'l_arm', word: 'VBNM', label: '左毒拳', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#22c55e' },
+                    { id: 'r_arm', word: 'MNBV', label: '右毒拳', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#22c55e' },
+                    { id: 'l_leg', word: 'VCXZ', label: '左足座', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#16a34a' },
+                    { id: 'r_leg', word: 'BCNM', label: '右足座', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#16a34a' }
                 ]
             },
             { 
                 name: "魔王關卡：全校守護戰", 
                 chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 
-                desc: "全軍出擊 - 最終決戰",
+                desc: "魔軍集結 • 最終大決戰",
+                monsterType: "boss_minion",
                 color: "#a855f7", 
-                enemySpeedBase: 2.5,
-                spawnRate: 600,
-                targetKills: 40,
+                enemySpeedBase: 2.1,
+                spawnRate: 700,
+                targetKills: 45,
                 bossParts: [
-                    { id: 'head', word: 'VICTORY', label: '核心', offset: {x: 0, y: -90}, w: 120, h: 70, color: '#d8b4fe' },
-                    { id: 'l_arm', word: 'BRAVE', label: '勇氣', offset: {x: -140, y: -20}, w: 90, h: 90, color: '#a855f7' },
-                    { id: 'r_arm', word: 'FIGHT', label: '戰鬥', offset: {x: 140, y: -20}, w: 90, h: 90, color: '#a855f7' },
-                    { id: 'l_leg', word: 'GLORY', label: '榮耀', offset: {x: -70, y: 130}, w: 70, h: 110, color: '#7e22ce' },
-                    { id: 'r_leg', word: 'HONOR', label: '榮譽', offset: {x: 70, y: 130}, w: 70, h: 110, color: '#7e22ce' }
+                    { id: 'head', word: 'VICTORY', label: '魔神之核', offset: {x: 0, y: -90}, w: 130, h: 70, color: '#d8b4fe' },
+                    { id: 'l_arm', word: 'BRAVE', label: '勇者左翼', offset: {x: -140, y: -20}, w: 90, h: 90, color: '#a855f7' },
+                    { id: 'r_arm', word: 'FIGHT', label: '奮戰右翼', offset: {x: 140, y: -20}, w: 90, h: 90, color: '#a855f7' },
+                    { id: 'l_leg', word: 'GLORY', label: '榮耀之足', offset: {x: -70, y: 130}, w: 70, h: 110, color: '#7e22ce' },
+                    { id: 'r_leg', word: 'HONOR', label: '守護之足', offset: {x: 70, y: 130}, w: 70, h: 110, color: '#7e22ce' }
                 ],
                 isBoss: true,
-                isStoryEnd: true // Marks the end of story mode
+                isStoryEnd: true
             },
             { 
                 name: "無限模式：永恆守護", 
                 chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 
-                desc: "無盡挑戰 - 積分無上限",
-                color: "#f59e0b", // Amber/Gold
-                enemySpeedBase: 2.0,
+                desc: "無盡修煉 • 積分無上限",
+                monsterType: "slime",
+                color: "#f59e0b", 
+                enemySpeedBase: 1.8,
                 spawnRate: 1000,
-                targetKills: Infinity, // Logic handled dynamically
+                targetKills: Infinity,
                 isInfinite: true
             }
         ];
 
         const BUFFS = [
-            { id: 'heal', name: '營養午餐', desc: '回復 30% 生命值', type: 'heal' },
-            { id: 'slow', name: '時間凍結', desc: '敵人移動速度降低 20%', type: 'stat', stat: 'speedMult', val: 0.8 },
-            { id: 'score', name: '榮譽卡', desc: '分數獲取增加 50%', type: 'stat', stat: 'scoreMult', val: 0.5 },
-            { id: 'maxhp', name: '體育鍛鍊', desc: '最大生命值增加 20', type: 'maxhp', val: 20 },
-            { id: 'shield', name: '警衛防護', desc: '獲得一次傷害免疫盾', type: 'shield' }
+            { id: 'heal', name: '營養午餐', desc: '回復 35% 生命值', type: 'heal' },
+            { id: 'slow', name: '時間凍結', desc: '敵人下降速度降低 20%', type: 'stat', stat: 'speedMult', val: 0.8 },
+            { id: 'score', name: '榮譽獎卡', desc: '擊破得分獲取增加 50%', type: 'stat', stat: 'scoreMult', val: 0.5 },
+            { id: 'maxhp', name: '體育鍛鍊', desc: '英雄最大生命值增加 25', type: 'maxhp', val: 25 },
+            { id: 'shield', name: '警衛防護', desc: '獲得一次受擊免疫聖盾', type: 'shield' }
         ];
 
-        // Word pool for Infinite Bosses
-        const BOSS_WORDS_POOL = ["CHAOS", "ABYSS", "NIGHTMARE", "DOOM", "ETERNAL", "OMEGA", "FINAL", "LIMIT", "BREAK", "ZERO", "TYRANT", "TITAN", "STORM", "VOID", "NOVA"];
+        const BOSS_WORDS_POOL = [
+            "CHAOS", "ABYSS", "NIGHTMARE", "DOOM", "ETERNAL", 
+            "OMEGA", "FINAL", "LIMIT", "BREAK", "ZERO", 
+            "TYRANT", "TITAN", "STORM", "VOID", "NOVA", "HERO"
+        ];
 
-        // --- Cheat Detection ---
+        // --- Cheats ---
         let inputHistory = '';
         const CHEAT_CODE_AUTO = "2u/ 2u/ cl3gj94";
         const CHEAT_CODE_GOD = "2u/ 2u/ xl3g";
@@ -556,6 +848,7 @@
         let canvas, ctx;
         let animationId;
         let lastTime = 0;
+        let isComposing = false;
         
         let gameState = {
             status: 'START',
@@ -568,8 +861,9 @@
             killsInStage: 0,
             
             // Boss
-            boss: null, // { x, y, parts: [] }
-            bossWaveCount: 0, // Used for infinite mode
+            boss: null,
+            bossWaveCount: 0,
+            bossLockedPartId: null,
             
             // Player Stats
             hp: 100,
@@ -578,19 +872,43 @@
             speedMult: 1.0,
             shield: false,
 
-            // Cheat Modes
+            // Combo & Fever
+            combo: 0,
+            maxCombo: 0,
+            feverActive: false,
+            feverTimer: 0,
+
+            // Balance & Tolerance
+            consecutiveMisses: 0,
+            invincibleTimer: 0,
+            frostTimer: 0,
+
+            // Educational Diagnosis Metrics
+            startTime: 0,
+            endTime: 0,
+            totalKeystrokes: 0,
+            correctKeystrokes: 0,
+            mistakeKeystrokes: 0,
+            missedKeysCount: {},
+
+            // Cheats
             autoPlay: false,
             autoPlayTimer: 0,
             godMode: false
         };
 
-        // --- Init ---
+        // --- Init Window ---
         window.onload = () => {
             canvas = document.getElementById('game-canvas');
             ctx = canvas.getContext('2d');
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
             window.addEventListener('keydown', handleInput);
+            
+            // IME Composition Listeners
+            window.addEventListener('compositionstart', onCompositionStart);
+            window.addEventListener('compositionend', onCompositionEnd);
+            window.addEventListener('compositionupdate', onCompositionUpdate);
         };
 
         function resizeCanvas() {
@@ -598,21 +916,54 @@
             canvas.height = window.innerHeight;
         }
 
+        // --- IME Handlers ---
+        function onCompositionStart(e) {
+            isComposing = true;
+            showImeModal(true);
+        }
+        function onCompositionUpdate(e) {
+            isComposing = true;
+            showImeModal(true);
+        }
+        function onCompositionEnd(e) {
+            isComposing = false;
+            showImeModal(false);
+        }
+        function showImeModal(show) {
+            const modal = document.getElementById('ime-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+        function dismissImeModal() {
+            isComposing = false;
+            showImeModal(false);
+        }
+
+        // --- Game Controls ---
         function startGame(mode) {
+            initAudio();
+            startBGM();
+
             document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('report-card-container').classList.add('hidden');
             document.getElementById('hud').classList.remove('hidden');
             document.getElementById('hud').classList.add('flex');
             
             resetGame();
             
             if (mode === 'infinite') {
-                // Find the infinite level (last one usually, or index 4)
                 startStage(4);
             } else {
                 startStage(0);
             }
             
             gameState.status = 'PLAYING';
+            gameState.startTime = performance.now();
             lastTime = performance.now();
             loop(lastTime);
         }
@@ -629,17 +980,34 @@
                 killsInStage: 0,
                 boss: null,
                 bossWaveCount: 0,
+                bossLockedPartId: null,
                 hp: 100,
                 maxHp: 100,
                 scoreMult: 1.0,
                 speedMult: 1.0,
                 shield: false,
+                combo: 0,
+                maxCombo: 0,
+                feverActive: false,
+                feverTimer: 0,
+                consecutiveMisses: 0,
+                invincibleTimer: 0,
+                frostTimer: 0,
+                startTime: performance.now(),
+                endTime: 0,
+                totalKeystrokes: 0,
+                correctKeystrokes: 0,
+                mistakeKeystrokes: 0,
+                missedKeysCount: {},
                 autoPlay: false,
                 autoPlayTimer: 0,
                 godMode: false
             };
             document.getElementById('auto-mode-indicator').style.display = 'none';
             document.getElementById('god-mode-indicator').style.display = 'none';
+            document.getElementById('fever-badge').classList.add('hidden');
+            document.getElementById('combo-badge').classList.add('hidden');
+            document.getElementById('game-canvas').classList.remove('fever-active');
             inputHistory = '';
             updateHUD();
         }
@@ -650,16 +1018,17 @@
             gameState.enemies = [];
             gameState.projectiles = [];
             gameState.boss = null;
+            gameState.bossLockedPartId = null;
             document.getElementById('boss-hud').classList.remove('visible');
             
             const stage = LEVELS[idx];
             document.getElementById('stage-name').innerText = stage.name;
             document.getElementById('stage-name').style.color = stage.color;
             
-            createFloatingText(canvas.width/2, canvas.height/2, stage.name, stage.color, 40);
+            createFloatingText(canvas.width/2, canvas.height/2, stage.name, stage.color, 36);
         }
 
-        // --- Game Loop ---
+        // --- Main Game Loop ---
         function loop(timestamp) {
             if (gameState.status !== 'PLAYING') return;
             
@@ -672,75 +1041,82 @@
             animationId = requestAnimationFrame(loop);
         }
 
-        // --- Update Logic ---
+        // --- Game Update Logic ---
         function update(dt) {
             const stage = LEVELS[gameState.currentStageIdx];
 
-            // --- Auto Play Logic ---
+            if (gameState.invincibleTimer > 0) {
+                gameState.invincibleTimer -= dt;
+            }
+
+            if (gameState.frostTimer > 0) {
+                gameState.frostTimer -= dt;
+            }
+
+            if (gameState.feverActive) {
+                gameState.feverTimer -= dt;
+                if (gameState.feverTimer <= 0) {
+                    gameState.feverActive = false;
+                    document.getElementById('fever-badge').classList.add('hidden');
+                    document.getElementById('game-canvas').classList.remove('fever-active');
+                }
+            }
+
             if (gameState.autoPlay) {
                 gameState.autoPlayTimer -= dt;
                 if (gameState.autoPlayTimer <= 0) {
                     performAutoAttack();
-                    gameState.autoPlayTimer = 100; // Attack every 100ms
+                    gameState.autoPlayTimer = 110;
                 }
             }
 
-            // --- Boss Logic ---
+            // Boss Combat Logic
             if (gameState.boss) {
-                // Boss Descends
-                gameState.boss.y += (0.15 * gameState.speedMult) * (dt / 16);
+                if (gameState.frostTimer <= 0) {
+                    gameState.boss.y += (0.13 * gameState.speedMult) * (dt / 16);
+                }
                 
-                // Boss hits player (Game Over or Huge Damage)
                 if (gameState.boss.y > canvas.height - 150) {
                     takeDamage(100); 
                     shakeScreen();
                 }
 
-                // Check if ALL parts are destroyed
                 const allDestroyed = gameState.boss.parts.every(p => p.isDestroyed);
                 
                 if (allDestroyed) {
-                    // Boss Defeated Animation
                     createParticles(gameState.boss.x, gameState.boss.y, '#ffd700');
-                    createParticles(gameState.boss.x - 50, gameState.boss.y + 50, '#ffd700');
-                    createParticles(gameState.boss.x + 50, gameState.boss.y + 50, '#ffd700');
+                    createParticles(gameState.boss.x - 60, gameState.boss.y + 60, '#ffd700');
+                    createParticles(gameState.boss.x + 60, gameState.boss.y + 60, '#ffd700');
                     
-                    gameState.score += 2000 * gameState.scoreMult;
+                    const bossScore = Math.round(2500 * gameState.scoreMult * (gameState.feverActive ? 2 : 1));
+                    gameState.score += bossScore;
                     gameState.boss = null;
+                    gameState.bossLockedPartId = null;
                     document.getElementById('boss-hud').classList.remove('visible');
                     
                     setTimeout(() => {
                         if (stage.isInfinite) {
-                            levelComplete("無限模式升級!");
+                            levelComplete("無限波次突破!");
                         } else if (stage.isStoryEnd) {
-                            victory(); // End story mode here
-                        } else if (gameState.currentStageIdx >= LEVELS.length - 1) {
-                            victory(); // Fallback if no isStoryEnd flag but at end
+                            victory();
+                        } else if (gameState.currentStageIdx >= LEVELS.length - 2) {
+                            victory();
                         } else {
-                            levelComplete(); // Next level
+                            levelComplete();
                         }
                     }, 1000);
                 }
 
-                // Clean up remaining enemies during boss fight
                 for (let i = gameState.enemies.length - 1; i >= 0; i--) {
-                    gameState.enemies[i].y += 10; 
-                     if (gameState.enemies[i].y > canvas.height) gameState.enemies.splice(i, 1);
+                    gameState.enemies[i].y += 12; 
+                    if (gameState.enemies[i].y > canvas.height) gameState.enemies.splice(i, 1);
                 }
 
             } else {
-                // --- Normal Enemy Spawning ---
-                
-                let canSpawn = false;
-
                 if (stage.isInfinite) {
-                    // Infinite Mode Logic
                     const killsPerBoss = 30;
-                    
-                    // Difficulty scaling
-                    const dynamicSpawnRate = Math.max(400, stage.spawnRate - (gameState.killsInStage * 10));
+                    const dynamicSpawnRate = Math.max(380, stage.spawnRate - (gameState.killsInStage * 12));
                     const speedModifier = 1 + Math.floor(gameState.killsInStage / 10) * 0.05;
-
                     const currentBossWave = Math.floor(gameState.killsInStage / killsPerBoss);
                     
                     if (gameState.killsInStage > 0 && 
@@ -748,11 +1124,9 @@
                         gameState.bossWaveCount < currentBossWave &&
                         gameState.enemies.length === 0) {
                         
-                        // Time for a boss!
                         gameState.bossWaveCount = currentBossWave;
                         spawnBoss(stage, true); 
                     } else {
-                        canSpawn = true;
                         gameState.spawnTimer -= dt;
                         if (gameState.spawnTimer <= 0) {
                             spawnEnemy(stage, speedModifier);
@@ -760,7 +1134,6 @@
                         }
                     }
                 } else {
-                    // Normal Story Mode Logic
                     if (gameState.killsInStage < stage.targetKills) {
                         gameState.spawnTimer -= dt;
                         if (gameState.spawnTimer <= 0) {
@@ -773,15 +1146,18 @@
                     }
                 }
 
-                // Update Enemies
                 for (let i = gameState.enemies.length - 1; i >= 0; i--) {
                     let e = gameState.enemies[i];
-                    const spd = e.customSpeed ? e.customSpeed : e.speed * gameState.speedMult;
-                    
-                    e.y += spd * (dt / 16);
+
+                    if (e.isDying) continue;
+
+                    if (gameState.frostTimer <= 0) {
+                        const spd = e.customSpeed ? e.customSpeed : e.speed * gameState.speedMult;
+                        e.y += spd * (dt / 16);
+                    }
 
                     if (e.y > canvas.height) {
-                        takeDamage(15);
+                        takeDamage(12);
                         gameState.enemies.splice(i, 1);
                         shakeScreen();
                     }
@@ -791,11 +1167,24 @@
             // Update Projectiles
             for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
                 let p = gameState.projectiles[i];
-                p.x = lerp(p.x, p.targetX, 0.25);
-                p.y = lerp(p.y, p.targetY, 0.25);
+                p.x = lerp(p.x, p.targetX, 0.3);
+                p.y = lerp(p.targetY, p.y, 0.3);
                 
-                if (Math.abs(p.x - p.targetX) < 20 && Math.abs(p.y - p.targetY) < 20) {
+                const dist = Math.hypot(p.x - p.targetX, p.y - p.targetY);
+                if (dist < 25) {
                     createParticles(p.targetX, p.targetY, p.color || '#fbbf24');
+                    playSound('hit_impact');
+
+                    if (p.enemyRef) {
+                        const idx = gameState.enemies.indexOf(p.enemyRef);
+                        if (idx !== -1) {
+                            if (p.enemyRef.rune) {
+                                triggerRuneEffect(p.enemyRef.rune, p.enemyRef.x, p.enemyRef.y);
+                            }
+                            gameState.enemies.splice(idx, 1);
+                        }
+                    }
+
                     gameState.projectiles.splice(i, 1);
                 }
             }
@@ -810,50 +1199,76 @@
             }
         }
 
+        // --- Rune Power Effects ---
+        function triggerRuneEffect(runeType, x, y) {
+            playSound('powerup');
+            if (runeType === 'frost') {
+                gameState.frostTimer = 3500;
+                createFloatingText(x, y, "❄️ 全場暴風雪凍結！", "#38bdf8", 24);
+                createParticles(x, y, '#38bdf8');
+            } else if (runeType === 'bomb') {
+                createFloatingText(x, y, "💣 全屏聖光爆破！", "#f87171", 24);
+                shakeScreen();
+                for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+                    createParticles(gameState.enemies[i].x, gameState.enemies[i].y, '#f87171');
+                    gameState.score += 50;
+                }
+                gameState.killsInStage += gameState.enemies.length;
+                gameState.enemies = [];
+            } else if (runeType === 'potion') {
+                gameState.hp = Math.min(gameState.maxHp, gameState.hp + 20);
+                createFloatingText(x, y, "💖 聖泉治癒 +20 HP！", "#4ade80", 24);
+                updateHUD();
+            }
+        }
+
         function spawnEnemy(stage, speedMod = 1.0) {
             const char = stage.chars.charAt(Math.floor(Math.random() * stage.chars.length));
-            const x = Math.random() * (canvas.width - 100) + 50;
-            const speed = (stage.enemySpeedBase + (Math.random() * 0.5)) * gameState.speedMult * speedMod;
+            const x = Math.random() * (canvas.width - 120) + 60;
+            const speed = (stage.enemySpeedBase + (Math.random() * 0.4)) * gameState.speedMult * speedMod;
             
+            let rune = null;
+            if (Math.random() < 0.12) {
+                const runePool = ['frost', 'bomb', 'potion'];
+                rune = runePool[Math.floor(Math.random() * runePool.length)];
+            }
+
             gameState.enemies.push({
                 char: char,
                 x: x,
-                y: -50,
-                speed: speed, // Base speed reference
-                customSpeed: speed, // Final speed calculation
+                y: -40,
+                speed: speed,
+                customSpeed: speed,
+                isDying: false,
+                rune: rune,
+                monsterType: stage.monsterType,
                 id: Math.random()
             });
         }
 
         function spawnBoss(stage, isInfinite = false) {
             playSound('boss_spawn');
-            
             let parts = [];
 
             if (isInfinite) {
-                // Generate random boss parts
                 const colors = ['#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'];
                 const getRandomWord = () => BOSS_WORDS_POOL[Math.floor(Math.random() * BOSS_WORDS_POOL.length)];
                 const color = colors[Math.floor(Math.random() * colors.length)];
 
                 parts = [
-                    { id: 'head', word: getRandomWord(), label: '核心', offset: {x: 0, y: -90}, w: 120, h: 70, color: color },
-                    { id: 'l_arm', word: getRandomWord(), label: '觸手', offset: {x: -140, y: -20}, w: 90, h: 90, color: color },
-                    { id: 'r_arm', word: getRandomWord(), label: '觸手', offset: {x: 140, y: -20}, w: 90, h: 90, color: color },
-                    { id: 'l_leg', word: getRandomWord(), label: '根基', offset: {x: -70, y: 130}, w: 70, h: 110, color: color },
-                    { id: 'r_leg', word: getRandomWord(), label: '根基', offset: {x: 70, y: 130}, w: 70, h: 110, color: color }
+                    { id: 'head', word: getRandomWord(), label: '虛空之核', offset: {x: 0, y: -90}, w: 120, h: 70, color: color },
+                    { id: 'l_arm', word: getRandomWord(), label: '左觸手', offset: {x: -140, y: -20}, w: 90, h: 90, color: color },
+                    { id: 'r_arm', word: getRandomWord(), label: '右觸手', offset: {x: 140, y: -20}, w: 90, h: 90, color: color },
+                    { id: 'l_leg', word: getRandomWord(), label: '左根基', offset: {x: -70, y: 130}, w: 70, h: 110, color: color },
+                    { id: 'r_leg', word: getRandomWord(), label: '右根基', offset: {x: 70, y: 130}, w: 70, h: 110, color: color }
                 ];
 
-                // Make words longer/harder as waves progress
                 if (gameState.bossWaveCount > 2) {
                      parts.forEach(p => p.word += getRandomWord().substring(0, 3));
                 }
 
-                // Initialize state
                 parts = parts.map(p => ({ ...p, typedIndex: 0, isDestroyed: false }));
-
             } else {
-                // Clone story boss
                 parts = stage.bossParts.map(p => ({
                     ...p,
                     typedIndex: 0,
@@ -866,34 +1281,29 @@
                 y: 150,
                 parts: parts
             };
+            gameState.bossLockedPartId = null;
             
-            // Show Boss HUD
             const bossHud = document.getElementById('boss-hud');
             bossHud.classList.add('visible');
             updateBossHUD();
             
-            createFloatingText(canvas.width/2, canvas.height/2, "BOSS WARNING!", "#ff0000", 60);
+            createFloatingText(canvas.width/2, canvas.height/2, "⚠️ BOSS 降臨！", "#ff0000", 55);
         }
 
-        // --- Auto Play Function ---
         function performAutoAttack() {
             if (gameState.boss) {
-                // Find a non-destroyed part
                 const aliveParts = gameState.boss.parts.filter(p => !p.isDestroyed);
                 if (aliveParts.length > 0) {
-                    // Pick the first one
-                    const part = aliveParts[0];
+                    const part = (gameState.bossLockedPartId && aliveParts.find(p => p.id === gameState.bossLockedPartId)) || aliveParts[0];
                     const char = part.word[part.typedIndex];
                     if (char) executeKey(char);
                 }
             } else if (gameState.enemies.length > 0) {
-                // Find lowest visible enemy
                 let targetChar = null;
                 let maxY = -1000;
                 
                 gameState.enemies.forEach((enemy) => {
-                    // Only attack if visible (y > 40 pixels)
-                    if (enemy.y > 40) {
+                    if (!enemy.isDying && enemy.y > 30) {
                         if (enemy.y > maxY) {
                             maxY = enemy.y;
                             targetChar = enemy.char;
@@ -908,15 +1318,22 @@
         }
 
         function executeKey(key) {
-            // Simulate input logic directly
-            handleInput({ key: key });
+            handleInput({ key: key, preventDefault: () => {} });
         }
 
         function handleInput(e) {
-            if (gameState.status !== 'PLAYING') return;
-            
-            // --- Cheat Detection Logic ---
-            if (e.key.length === 1) { // Only track single chars
+            if (e.getModifierState) {
+                const capsOn = e.getModifierState('CapsLock');
+                const capsBadge = document.getElementById('caps-badge');
+                if (capsBadge) capsBadge.style.display = capsOn ? 'inline-block' : 'none';
+            }
+
+            if (isComposing || e.key === 'Process') {
+                showImeModal(true);
+                return;
+            }
+
+            if (e.key && e.key.length === 1) {
                 inputHistory += e.key;
                 if (inputHistory.length > 50) inputHistory = inputHistory.slice(-50);
                 
@@ -932,61 +1349,67 @@
                 }
             }
             
-            // Ignore length > 1 (shift, enter, etc)
-            if (e.key.length > 1) return;
+            if (gameState.status !== 'PLAYING') return;
+
+            if (!e.key || e.key.length > 1) return;
             
             const key = e.key.toUpperCase();
-            
-            // --- Boss Combat ---
-            if (gameState.boss) {
-                let hitAny = false;
-                
-                // Check all alive parts
-                gameState.boss.parts.forEach(part => {
-                    if (part.isDestroyed) return;
-                    
-                    const neededChar = part.word[part.typedIndex];
-                    if (key === neededChar) {
-                        hitAny = true;
-                        part.typedIndex++;
-                        
-                        // Visuals
-                        const targetX = gameState.boss.x + part.offset.x;
-                        const targetY = gameState.boss.y + part.offset.y;
-                        shootProjectile(targetX, targetY, part.color);
-                        playSound('boss_hit');
+            if (!/[A-Z]/.test(key)) return;
 
-                        // Check if part destroyed
-                        if (part.typedIndex >= part.word.length) {
-                            part.isDestroyed = true;
-                            playSound('boss_part_break');
-                            createParticles(targetX, targetY, part.color);
-                            createFloatingText(targetX, targetY, `${part.label} 破壞!`, '#fff', 20);
-                            gameState.score += 500 * gameState.scoreMult;
-                            shakeScreen();
+            gameState.totalKeystrokes++;
+
+            // Boss Combat
+            if (gameState.boss) {
+                let hitPart = null;
+
+                if (gameState.bossLockedPartId) {
+                    const lockedPart = gameState.boss.parts.find(p => p.id === gameState.bossLockedPartId && !p.isDestroyed);
+                    if (lockedPart && lockedPart.word[lockedPart.typedIndex] === key) {
+                        hitPart = lockedPart;
+                    }
+                }
+
+                if (!hitPart) {
+                    for (let p of gameState.boss.parts) {
+                        if (!p.isDestroyed && p.word[p.typedIndex] === key) {
+                            hitPart = p;
+                            gameState.bossLockedPartId = p.id;
+                            break;
                         }
                     }
-                });
+                }
 
-                if (hitAny) {
+                if (hitPart) {
+                    registerCorrectHit(key);
+                    hitPart.typedIndex++;
+                    
+                    const targetX = gameState.boss.x + hitPart.offset.x;
+                    const targetY = gameState.boss.y + hitPart.offset.y;
+                    shootProjectile(targetX, targetY, hitPart.color);
+                    playSound('boss_hit');
+
+                    if (hitPart.typedIndex >= hitPart.word.length) {
+                        hitPart.isDestroyed = true;
+                        gameState.bossLockedPartId = null;
+                        playSound('boss_part_break');
+                        createParticles(targetX, targetY, hitPart.color);
+                        createFloatingText(targetX, targetY, `${hitPart.label} 破壞!`, '#fff', 22);
+                        gameState.score += Math.round(500 * gameState.scoreMult * (gameState.feverActive ? 2 : 1));
+                        shakeScreen();
+                    }
                     updateBossHUD();
                 } else {
-                    // Miss Boss - Only punish if it's an A-Z key
-                    if (/[A-Z]/.test(key)) {
-                        takeDamage(5);
-                        playSound('miss');
-                        createFloatingText(canvas.width/2, canvas.height/2 + 200, "MISS! -5", "#ff0000", 30, true);
-                    }
+                    registerMistake(key, "MISS -1");
                 }
                 return;
             }
 
-            // --- Normal Combat ---
+            // Normal Enemy Combat
             let targetIdx = -1;
             let maxY = -1000;
 
             gameState.enemies.forEach((enemy, idx) => {
-                if (enemy.char === key) {
+                if (!enemy.isDying && enemy.char === key) {
                     if (enemy.y > maxY) {
                         maxY = enemy.y;
                         targetIdx = idx;
@@ -995,67 +1418,106 @@
             });
 
             if (targetIdx !== -1) {
+                registerCorrectHit(key);
                 const enemy = gameState.enemies[targetIdx];
-                shootProjectile(enemy.x, enemy.y);
-                gameState.enemies.splice(targetIdx, 1);
-                gameState.score += Math.ceil(100 * gameState.scoreMult);
+                enemy.isDying = true;
+                
+                shootProjectile(enemy.x, enemy.y, gameState.feverActive ? '#facc15' : '#60a5fa', enemy);
+                
+                const earnedScore = Math.round(100 * gameState.scoreMult * (gameState.feverActive ? 2 : 1));
+                gameState.score += earnedScore;
                 gameState.killsInStage++;
-                playSound('shoot');
+                playSound('shoot', { combo: gameState.combo });
                 updateHUD();
             } else {
-                // Punishment Logic Update: Only penalize A-Z keys
-                if (/[A-Z]/.test(key)) {
-                    takeDamage(5);
-                    playSound('miss');
-                    createFloatingText(canvas.width/2, canvas.height/2 + 100, "MISS! -5", "#ff0000", 30, true);
-                    shakeScreen();
-                }
+                registerMistake(key);
             }
         }
 
-        function activateAutoCheat() {
-            gameState.autoPlay = !gameState.autoPlay;
-            playSound('cheat');
-            createFloatingText(canvas.width/2, canvas.height/2, gameState.autoPlay ? "AUTO PILOT ENGAGED" : "AUTO PILOT OFF", "#00ff00", 50);
+        function registerCorrectHit(key) {
+            gameState.correctKeystrokes++;
+            gameState.consecutiveMisses = 0;
+            gameState.combo++;
             
-            const indicator = document.getElementById('auto-mode-indicator');
-            indicator.style.display = gameState.autoPlay ? 'block' : 'none';
+            if (gameState.combo > gameState.maxCombo) {
+                gameState.maxCombo = gameState.combo;
+            }
+
+            const comboBadge = document.getElementById('combo-badge');
+            if (gameState.combo >= 3) {
+                comboBadge.innerText = `${gameState.combo} COMBO!`;
+                comboBadge.classList.remove('hidden');
+            }
+
+            if (gameState.combo === 10) {
+                createFloatingText(canvas.width/2, canvas.height/2 + 80, "GREAT! 10 COMBO", "#60a5fa", 26);
+            } else if (gameState.combo === 20) {
+                triggerFeverMode();
+            } else if (gameState.combo > 20 && gameState.combo % 10 === 0) {
+                createFloatingText(canvas.width/2, canvas.height/2 + 80, `${gameState.combo} COMBO FEVER!`, "#f59e0b", 30);
+            }
         }
 
-        function activateGodCheat() {
-            gameState.godMode = !gameState.godMode;
-            playSound('cheat');
-            createFloatingText(canvas.width/2, canvas.height/2, gameState.godMode ? "GOD MODE ON" : "GOD MODE OFF", "#ffd700", 50);
+        function triggerFeverMode() {
+            gameState.feverActive = true;
+            gameState.feverTimer = 6500;
+            playSound('fever');
+            createFloatingText(canvas.width/2, canvas.height/2, "🔥 FEVER TIME! 聖光狂熱! 🔥", "#ffd700", 40);
             
-            const indicator = document.getElementById('god-mode-indicator');
-            indicator.style.display = gameState.godMode ? 'block' : 'none';
+            const feverBadge = document.getElementById('fever-badge');
+            feverBadge.classList.remove('hidden');
+            document.getElementById('game-canvas').classList.add('fever-active');
         }
 
-        function shootProjectile(tx, ty, color = '#fbbf24') {
+        function registerMistake(key, customText = null) {
+            gameState.mistakeKeystrokes++;
+            gameState.consecutiveMisses++;
+            gameState.missedKeysCount[key] = (gameState.missedKeysCount[key] || 0) + 1;
+            
+            if (gameState.combo > 0) {
+                gameState.combo = 0;
+                document.getElementById('combo-badge').classList.add('hidden');
+            }
+
+            const dmg = Math.min(3, gameState.consecutiveMisses);
+            takeDamage(dmg);
+            playSound('miss');
+            
+            const txt = customText ? customText : `MISS! -${dmg}`;
+            createFloatingText(canvas.width/2, canvas.height/2 + 120, txt, "#ef4444", 26, true);
+        }
+
+        function shootProjectile(tx, ty, color = '#fbbf24', enemyRef = null) {
             gameState.projectiles.push({
                 x: canvas.width / 2,
-                y: canvas.height,
+                y: canvas.height - 20,
                 targetX: tx,
                 targetY: ty,
-                color: color
+                color: color,
+                enemyRef: enemyRef
             });
         }
 
         function takeDamage(amount) {
-            // God Mode Check
             if (gameState.godMode) {
-                createFloatingText(canvas.width/2, canvas.height/2, "INVINCIBLE!", "#ffd700", 30);
+                createFloatingText(canvas.width/2, canvas.height/2, "INVINCIBLE!", "#ffd700", 28);
                 return;
             }
 
-            if (gameState.shield && amount > 5) {
+            if (amount >= 10 && gameState.invincibleTimer > 0) return;
+
+            if (gameState.shield && amount >= 5) {
                 gameState.shield = false;
                 playSound('powerup');
-                createFloatingText(canvas.width/2, canvas.height/2, "SHIELD BLOCKED!", "#60a5fa", 30);
+                createFloatingText(canvas.width/2, canvas.height/2, "SHIELD BLOCKED!", "#60a5fa", 28);
+                updateHUD();
                 return;
             }
 
-            if (amount > 5) playSound('damage');
+            if (amount >= 10) {
+                playSound('damage');
+                gameState.invincibleTimer = 400;
+            }
 
             gameState.hp -= amount;
             if (gameState.hp <= 0) {
@@ -1063,6 +1525,20 @@
                 gameOver();
             }
             updateHUD();
+        }
+
+        function activateAutoCheat() {
+            gameState.autoPlay = !gameState.autoPlay;
+            playSound('cheat');
+            createFloatingText(canvas.width/2, canvas.height/2, gameState.autoPlay ? "AUTO PILOT ON" : "AUTO PILOT OFF", "#00ff00", 40);
+            document.getElementById('auto-mode-indicator').style.display = gameState.autoPlay ? 'block' : 'none';
+        }
+
+        function activateGodCheat() {
+            gameState.godMode = !gameState.godMode;
+            playSound('cheat');
+            createFloatingText(canvas.width/2, canvas.height/2, gameState.godMode ? "GOD MODE ON" : "GOD MODE OFF", "#ffd700", 40);
+            document.getElementById('god-mode-indicator').style.display = gameState.godMode ? 'block' : 'none';
         }
 
         function levelComplete(customTitle) {
@@ -1077,7 +1553,7 @@
                 notifySub.innerText = customTitle;
             } else {
                 notify.querySelector('h2').innerText = "VICTORY!";
-                notifySub.innerText = "準備進入下一層...";
+                notifySub.innerText = "區域守護成功，準備升級...";
             }
 
             notify.classList.remove('hidden');
@@ -1085,7 +1561,7 @@
             setTimeout(() => {
                 notify.classList.add('hidden');
                 showUpgradeMenu();
-            }, 2000);
+            }, 1800);
         }
 
         function showUpgradeMenu() {
@@ -1108,10 +1584,10 @@
                 const el = document.createElement('div');
                 el.className = "card border-2 border-gray-600 p-6 rounded-lg w-full md:w-64 flex flex-col items-center text-center relative overflow-hidden group";
                 el.innerHTML = `
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent group-hover:from-yellow-900/50 transition-all"></div>
-                    <div class="text-5xl mb-4 text-yellow-400 relative z-10 group-hover:scale-110 transition-transform">✦</div>
-                    <h3 class="text-xl font-bold text-white mb-2 pixel-font relative z-10">${buff.name}</h3>
-                    <p class="text-sm text-gray-300 relative z-10">${buff.desc}</p>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent group-hover:from-yellow-950/60 transition-all"></div>
+                    <div class="text-4xl mb-3 text-yellow-400 relative z-10 group-hover:scale-110 transition-transform">✦</div>
+                    <h3 class="text-lg font-bold text-white mb-2 pixel-font relative z-10">${buff.name}</h3>
+                    <p class="text-xs text-gray-300 relative z-10 leading-relaxed">${buff.desc}</p>
                 `;
                 el.onclick = () => selectBuff(buff);
                 container.appendChild(el);
@@ -1122,7 +1598,7 @@
             playSound('powerup');
             
             if (buff.type === 'heal') {
-                gameState.hp = Math.min(gameState.hp + (gameState.maxHp * 0.3), gameState.maxHp);
+                gameState.hp = Math.min(gameState.hp + (gameState.maxHp * 0.35), gameState.maxHp);
             } else if (buff.type === 'stat') {
                 gameState[buff.stat] = buff.id === 'slow' ? gameState[buff.stat] * buff.val : gameState[buff.stat] + buff.val;
             } else if (buff.type === 'maxhp') {
@@ -1133,16 +1609,14 @@
             }
 
             document.getElementById('upgrade-menu').classList.add('hidden');
+            document.getElementById('upgrade-menu').classList.remove('flex');
             
-            // Check if infinite mode
             if (LEVELS[gameState.currentStageIdx].isInfinite) {
-                // Resume infinite mode
                 gameState.status = 'PLAYING';
                 updateHUD();
                 lastTime = performance.now();
                 requestAnimationFrame(loop);
             } else {
-                // Next Story Stage
                 startStage(gameState.currentStageIdx + 1);
                 gameState.status = 'PLAYING';
                 updateHUD();
@@ -1151,63 +1625,63 @@
             }
         }
 
-        // --- Drawing ---
         function draw() {
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.4)'; 
+            ctx.fillStyle = 'rgba(11, 15, 25, 0.4)'; 
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             const stage = LEVELS[gameState.currentStageIdx];
 
-            // --- Draw Boss ---
+            // Boss
             if (gameState.boss) {
                 const bx = gameState.boss.x;
                 const by = gameState.boss.y;
                 
-                // Boss Connector Lines (Body frame)
                 ctx.strokeStyle = '#4b5563';
-                ctx.lineWidth = 4;
+                ctx.lineWidth = 3;
                 ctx.beginPath();
                 gameState.boss.parts.forEach(part => {
                     if (!part.isDestroyed) {
-                        ctx.moveTo(bx, by); // From center
+                        ctx.moveTo(bx, by);
                         ctx.lineTo(bx + part.offset.x, by + part.offset.y);
                     }
                 });
                 ctx.stroke();
 
-                // Draw Central Body Core (Just decoration)
                 ctx.fillStyle = '#1f2937';
                 ctx.beginPath();
-                ctx.arc(bx, by, 30, 0, Math.PI*2);
+                ctx.arc(bx, by, 32, 0, Math.PI*2);
                 ctx.fill();
                 ctx.strokeStyle = stage.color;
+                ctx.lineWidth = 3;
                 ctx.stroke();
 
-                // Draw Parts
                 gameState.boss.parts.forEach(part => {
                     if (part.isDestroyed) return;
 
                     const px = bx + part.offset.x;
                     const py = by + part.offset.y;
+                    const isLocked = (gameState.bossLockedPartId === part.id);
 
-                    // Part Shape
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = part.color;
-                    ctx.fillStyle = '#1f2937';
+                    ctx.shadowBlur = isLocked ? 25 : 15;
+                    ctx.shadowColor = isLocked ? '#facc15' : part.color;
+                    ctx.fillStyle = isLocked ? '#2e1065' : '#1f2937';
                     ctx.fillRect(px - part.w/2, py - part.h/2, part.w, part.h);
                     
-                    ctx.lineWidth = 3;
-                    ctx.strokeStyle = part.color;
+                    ctx.lineWidth = isLocked ? 4 : 2;
+                    ctx.strokeStyle = isLocked ? '#facc15' : part.color;
                     ctx.strokeRect(px - part.w/2, py - part.h/2, part.w, part.h);
-                    
                     ctx.shadowBlur = 0;
 
-                    // Word Rendering
-                    ctx.font = "bold 20px 'Press Start 2P'";
+                    if (isLocked) {
+                        ctx.fillStyle = '#facc15';
+                        ctx.font = "10px 'Press Start 2P'";
+                        ctx.fillText("[TARGET]", px, py - part.h/2 - 8);
+                    }
+
+                    ctx.font = "bold 18px 'Press Start 2P'";
                     ctx.textAlign = "center";
                     ctx.textBaseline = "middle";
                     
-                    // Center text in block
                     const charWidth = 16;
                     const startX = px - (part.word.length * charWidth) / 2 + 8;
 
@@ -1216,56 +1690,64 @@
                         const cx = startX + (i * charWidth);
                         
                         if (i < part.typedIndex) {
-                            ctx.fillStyle = "#22c55e"; // Green for typed
+                            ctx.fillStyle = "#22c55e";
                             ctx.fillText(char, cx, py);
                         } else if (i === part.typedIndex) {
-                            ctx.fillStyle = "#fbbf24"; // Yellow for current
-                            ctx.font = "bold 24px 'Press Start 2P'";
+                            ctx.fillStyle = "#fbbf24";
+                            ctx.font = "bold 22px 'Press Start 2P'";
                             ctx.fillText(char, cx, py);
-                            ctx.font = "bold 20px 'Press Start 2P'";
+                            ctx.font = "bold 18px 'Press Start 2P'";
                         } else {
-                            ctx.fillStyle = "#9ca3af"; // Gray for pending
+                            ctx.fillStyle = "#9ca3af";
                             ctx.fillText(char, cx, py);
                         }
                     }
                 });
             }
 
-            // Draw Enemies
-            ctx.font = "bold 32px 'Noto Sans TC'";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-
+            // Enemies
             gameState.enemies.forEach(e => {
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = stage.color;
-                ctx.fillStyle = "#1e293b";
+                const boxSize = 54;
+                const bx = e.x - boxSize / 2;
+                const by = e.y - boxSize / 2;
+
+                ctx.shadowBlur = e.rune ? 20 : 12;
+                ctx.shadowColor = e.rune ? '#f59e0b' : (gameState.frostTimer > 0 ? '#38bdf8' : stage.color);
+                
+                ctx.fillStyle = e.isDying ? '#475569' : (gameState.frostTimer > 0 ? '#0c4a6e' : '#1e293b');
                 ctx.beginPath();
-                ctx.roundRect(e.x - 25, e.y - 25, 50, 50, 10);
+                ctx.roundRect(bx, by, boxSize, boxSize, 10);
                 ctx.fill();
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = stage.color;
+                
+                ctx.lineWidth = e.rune ? 3 : 2;
+                ctx.strokeStyle = e.rune ? '#facc15' : (gameState.frostTimer > 0 ? '#38bdf8' : stage.color);
                 ctx.stroke();
-                ctx.fillStyle = "#ffffff";
-                ctx.fillText(e.char, e.x, e.y + 2);
                 ctx.shadowBlur = 0;
+
+                drawMonsterPixelIcon(ctx, e.x, e.y - 15, e.monsterType, e.rune);
+
+                ctx.font = "bold 24px 'Press Start 2P'";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = e.rune ? '#facc15' : '#ffffff';
+                ctx.fillText(e.char, e.x, e.y + 11);
             });
 
-            // Draw Projectiles
+            // Projectiles
             gameState.projectiles.forEach(p => {
-                ctx.shadowBlur = 10;
+                ctx.shadowBlur = 12;
                 ctx.shadowColor = p.color;
                 ctx.fillStyle = p.color;
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, gameState.feverActive ? 8 : 5, 0, Math.PI * 2);
                 ctx.fill();
             });
             ctx.shadowBlur = 0;
 
-            // Draw Particles
+            // Particles
             gameState.particles.forEach(p => {
                 ctx.fillStyle = p.color;
-                ctx.globalAlpha = p.life / 500;
+                ctx.globalAlpha = Math.max(0, p.life / 600);
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                 ctx.fill();
@@ -1273,16 +1755,50 @@
             });
         }
 
+        function drawMonsterPixelIcon(ctx, cx, cy, type, rune) {
+            ctx.fillStyle = '#f87171';
+            if (rune === 'frost') {
+                ctx.font = '10px sans-serif';
+                ctx.fillText('❄️', cx, cy);
+                return;
+            } else if (rune === 'bomb') {
+                ctx.font = '10px sans-serif';
+                ctx.fillText('💣', cx, cy);
+                return;
+            } else if (rune === 'potion') {
+                ctx.font = '10px sans-serif';
+                ctx.fillText('💖', cx, cy);
+                return;
+            }
+
+            if (type === 'skeleton') {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(cx - 6, cy - 3, 3, 3);
+                ctx.fillRect(cx + 3, cy - 3, 3, 3);
+            } else if (type === 'bat') {
+                ctx.fillStyle = '#c084fc';
+                ctx.fillRect(cx - 8, cy - 2, 4, 2);
+                ctx.fillRect(cx + 4, cy - 2, 4, 2);
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(cx - 2, cy - 1, 1.5, 1.5);
+                ctx.fillRect(cx + 1, cy - 1, 1.5, 1.5);
+            } else if (type === 'slime') {
+                ctx.fillStyle = '#4ade80';
+                ctx.fillRect(cx - 4, cy - 2, 2, 2);
+                ctx.fillRect(cx + 2, cy - 2, 2, 2);
+            }
+        }
+
         function createParticles(x, y, color) {
-            for (let i = 0; i < 15; i++) {
+            for (let i = 0; i < 16; i++) {
                 gameState.particles.push({
                     x: x,
                     y: y,
-                    vx: (Math.random() - 0.5) * 20,
-                    vy: (Math.random() - 0.5) * 20,
-                    life: 600,
+                    vx: (Math.random() - 0.5) * 18,
+                    vy: (Math.random() - 0.5) * 18,
+                    life: 550,
                     color: color,
-                    size: Math.random() * 6 + 2
+                    size: Math.random() * 5 + 2
                 });
             }
         }
@@ -1291,32 +1807,28 @@
             const el = document.createElement('div');
             el.innerText = text;
             el.className = isDamage ? 'damage-text pixel-font' : 'pixel-font';
-            if (!isDamage) {
-                el.style.position = 'absolute';
-                el.style.left = x + 'px';
-                el.style.top = y + 'px';
-                el.style.transform = 'translate(-50%, -50%)';
-                el.style.color = color;
-                el.style.fontSize = size + 'px';
-                el.style.fontWeight = 'bold';
-                el.style.textShadow = '0 0 10px black';
-                el.style.transition = 'all 1s ease-out';
-                el.style.zIndex = 45; 
-            } else {
-                 el.style.left = x + 'px';
-                 el.style.top = y + 'px';
-            }
+            el.style.position = 'absolute';
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.transform = 'translate(-50%, -50%)';
+            el.style.color = color;
+            el.style.fontSize = size + 'px';
+            el.style.fontWeight = 'bold';
+            el.style.textShadow = '0 0 10px black, 0 0 20px black';
+            el.style.transition = 'all 0.9s ease-out';
+            el.style.zIndex = '60';
+            el.style.pointerEvents = 'none';
             
             document.body.appendChild(el);
 
             if (!isDamage) {
                 setTimeout(() => {
-                    el.style.opacity = 0;
-                    el.style.top = (y - 50) + 'px';
-                }, 50);
+                    el.style.opacity = '0';
+                    el.style.top = (y - 45) + 'px';
+                }, 40);
             }
 
-            setTimeout(() => el.remove(), 1000);
+            setTimeout(() => el.remove(), 950);
         }
 
         function updateHUD() {
@@ -1325,17 +1837,15 @@
             bar.style.width = hpPercent + '%';
             document.getElementById('hp-text').innerText = `${Math.ceil(gameState.hp)}/${gameState.maxHp}`;
             
-            if (gameState.shield) {
-                bar.parentElement.classList.add('ring-2', 'ring-blue-400');
-            } else {
-                bar.parentElement.classList.remove('ring-2', 'ring-blue-400');
+            const shieldIndicator = document.getElementById('shield-indicator');
+            if (shieldIndicator) {
+                shieldIndicator.style.display = gameState.shield ? 'inline-block' : 'none';
             }
 
             const stage = LEVELS[gameState.currentStageIdx];
             
             let progress = 0;
             if (gameState.boss) {
-                progress = 100;
                 document.getElementById('progress-text').innerText = "BOSS";
                 document.getElementById('progress-text').classList.add('text-red-500', 'animate-pulse');
             } else {
@@ -1370,24 +1880,77 @@
 
         function shakeScreen() {
             document.body.classList.add('shake');
-            setTimeout(() => document.body.classList.remove('shake'), 500);
+            setTimeout(() => document.body.classList.remove('shake'), 400);
         }
 
         function gameOver() {
             gameState.status = 'GAMEOVER';
+            stopBGM();
             document.getElementById('hud').classList.add('hidden');
-            document.getElementById('game-over-screen').classList.remove('hidden');
-            document.getElementById('game-over-screen').classList.add('flex');
-            document.getElementById('final-score').innerText = gameState.score;
-            document.getElementById('death-reason').innerText = `在 ${LEVELS[gameState.currentStageIdx].name} 失守了...`;
+            renderReportCard(false);
         }
 
         function victory() {
             gameState.status = 'VICTORY';
+            stopBGM();
             document.getElementById('hud').classList.add('hidden');
-            document.getElementById('victory-screen').classList.remove('hidden');
-            document.getElementById('victory-screen').classList.add('flex');
-            document.getElementById('victory-score').innerText = gameState.score;
+            renderReportCard(true);
+        }
+
+        function renderReportCard(isVictory) {
+            gameState.endTime = performance.now();
+            const durationSec = Math.max(1, Math.round((gameState.endTime - gameState.startTime) / 1000));
+            const durationMin = durationSec / 60;
+
+            const titleEl = document.getElementById('result-title');
+            const subtitleEl = document.getElementById('result-subtitle');
+            
+            if (isVictory) {
+                titleEl.innerText = "LEGENDARY!";
+                titleEl.className = "text-4xl md:text-5xl font-black pixel-font text-yellow-400 mb-3 drop-shadow-md";
+                subtitleEl.innerText = "全校守護達成！你已成為西寧傳奇鍵盤勇者！";
+            } else {
+                titleEl.innerText = "DEFEATED";
+                titleEl.className = "text-4xl md:text-5xl font-black pixel-font text-red-500 mb-3 drop-shadow-md";
+                subtitleEl.innerText = `在 ${LEVELS[gameState.currentStageIdx].name} 遭遇挫折，勇者不要氣餒！`;
+            }
+
+            const accuracy = gameState.totalKeystrokes > 0 
+                ? Math.round((gameState.correctKeystrokes / gameState.totalKeystrokes) * 100) 
+                : 100;
+            const wpm = Math.round((gameState.correctKeystrokes / 5) / durationMin);
+
+            let rank = 'C 級 • 初階學徒';
+            if (accuracy >= 95 && wpm >= 32) {
+                rank = 'S 級 • 傳奇校園守護者 👑';
+            } else if (accuracy >= 90 && wpm >= 22) {
+                rank = 'A 級 • 菁英鍵盤衛士 ⚔️';
+            } else if (accuracy >= 80 && wpm >= 14) {
+                rank = 'B 級 • 勇敢冒險者 🛡️';
+            }
+            document.getElementById('rank-badge').innerText = rank;
+
+            document.getElementById('stat-wpm').innerText = wpm;
+            document.getElementById('stat-acc').innerText = `${accuracy}%`;
+            document.getElementById('stat-combo').innerText = gameState.maxCombo;
+            document.getElementById('stat-score').innerText = gameState.score;
+            
+            document.getElementById('stat-total-keys').innerText = `${gameState.totalKeystrokes} 次 (耗時 ${durationSec} 秒)`;
+            document.getElementById('stat-hits-misses').innerText = `${gameState.correctKeystrokes} 次命中 / ${gameState.mistakeKeystrokes} 次失誤`;
+
+            const entries = Object.entries(gameState.missedKeysCount).sort((a,b) => b[1] - a[1]);
+            if (entries.length === 0) {
+                document.getElementById('stat-top-mistakes').innerText = '零失誤（神級指法！）';
+                document.getElementById('stat-top-mistakes').className = 'font-mono text-green-400 font-bold text-sm';
+            } else {
+                const top3 = entries.slice(0, 3).map(e => `${e[0]} (${e[1]}次)`).join('、');
+                document.getElementById('stat-top-mistakes').innerText = top3;
+                document.getElementById('stat-top-mistakes').className = 'font-mono text-yellow-300 font-bold text-sm';
+            }
+
+            const container = document.getElementById('report-card-container');
+            container.classList.remove('hidden');
+            container.classList.add('flex');
         }
 
         function lerp(start, end, t) {
