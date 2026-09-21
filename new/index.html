@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>西寧校園守護者 - 勇者攻城篇 V2.0</title>
+    <title>西寧校園守護者 - 勇者攻城篇 V2.0 PRO (色彩指法加強版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@500;700;900&display=swap');
@@ -155,7 +155,7 @@
         /* Boss Health Bar Style */
         .boss-hp-container {
             position: absolute;
-            top: 80px;
+            top: 75px;
             left: 50%;
             transform: translateX(-50%);
             width: 60%;
@@ -219,7 +219,7 @@
 
         /* Audio & Control Buttons */
         .top-btn {
-            background: rgba(17, 24, 39, 0.8);
+            background: rgba(17, 24, 39, 0.85);
             border: 1px solid rgba(255,255,255,0.2);
             color: white;
             cursor: pointer;
@@ -244,6 +244,64 @@
         @keyframes feverPulse {
             0% { filter: brightness(1); }
             100% { filter: brightness(1.15); }
+        }
+
+        /* Mini Keyboard Finger Guide */
+        .guide-key {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            border-radius: 4px;
+            background: rgba(15, 23, 42, 0.8);
+            border-width: 2px;
+            color: #e2e8f0;
+            transition: all 0.15s;
+            position: relative;
+        }
+        .guide-key.top-row {
+            border-color: #38bdf8;
+            color: #7dd3fc;
+        }
+        .guide-key.home-row {
+            border-color: #10b981;
+            color: #6ee7b7;
+        }
+        .guide-key.bottom-row {
+            border-color: #f97316;
+            color: #fdba74;
+        }
+        .guide-key.anchor-key {
+            border-color: #facc15 !important;
+            color: #fef08a !important;
+            box-shadow: 0 0 8px rgba(250, 204, 21, 0.6);
+            font-weight: bold;
+        }
+        .guide-key.anchor-key::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            width: 14px;
+            height: 2px;
+            background-color: #facc15;
+            border-radius: 1px;
+        }
+        .guide-key.key-active {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            transform: scale(1.2);
+            box-shadow: 0 0 12px #ffffff !important;
+            z-index: 10;
+        }
+        .guide-key.key-target {
+            animation: keyPing 0.8s infinite alternate;
+        }
+        @keyframes keyPing {
+            0% { transform: scale(1); filter: brightness(1); }
+            100% { transform: scale(1.15); filter: brightness(1.6); }
         }
 
         /* Print Style for Certificate */
@@ -294,53 +352,58 @@
 
     <!-- UI Overlay: Start Screen (Hero Siege Theme) -->
     <div id="start-screen" class="ui-layer siege-bg z-40 pointer-events-auto">
-        <!-- Castle Silhouette -->
         <div class="castle-silhouette"></div>
-        
-        <!-- Fire Particles Container -->
         <div id="fire-container" class="absolute w-full h-full pointer-events-none"></div>
 
         <div class="relative z-10 text-center flex flex-col items-center max-w-4xl px-4">
-            <div class="mb-2 text-yellow-500 font-bold tracking-[0.4em] text-xs uppercase pixel-font">Xining Typing RPG • V2.0</div>
-            <h1 class="text-5xl md:text-7xl mb-5 pixel-font hero-title leading-tight">
+            <div class="mb-2 text-yellow-500 font-bold tracking-[0.4em] text-xs uppercase pixel-font">Xining Typing RPG • V2.0 PRO</div>
+            <h1 class="text-5xl md:text-7xl mb-4 pixel-font hero-title leading-tight">
                 西寧<br>校園守護者
             </h1>
             
-            <div class="bg-black/75 p-6 rounded-xl backdrop-blur-md border border-yellow-500/30 mb-6 w-full shadow-[0_0_30px_rgba(0,0,0,0.9)]">
-                <h2 class="text-2xl text-yellow-400 font-bold mb-3 pixel-font drop-shadow-md">⚠️ 校園緊急守護任務 ⚠️</h2>
-                <div class="flex flex-col md:flex-row gap-6 items-center text-left">
-                    <div class="flex-1">
-                        <p class="text-gray-200 mb-2 leading-relaxed text-base">
-                            來自異次元的 <span class="text-red-400 font-bold text-lg">字母魔軍</span> 正在入侵！<br>
-                            博學樓、群英樓與耕心樓需要神聖護盾...
-                        </p>
-                        <p class="text-blue-300 mb-3 leading-relaxed text-sm">
-                            喚醒指尖的 <span class="text-yellow-300 font-bold text-base">「鍵盤肌肉記憶」</span>，<br>
-                            手指穩坐基準鍵，逐層擊退入侵者！
-                        </p>
-                        <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono">
-                            <div class="bg-blue-900/40 p-2 rounded border border-blue-500/40">
-                                <div class="text-yellow-300 font-bold mb-1">博學樓 💀</div>
-                                <div class="text-gray-300">中排基準鍵</div>
-                            </div>
-                            <div class="bg-purple-900/40 p-2 rounded border border-purple-500/40">
-                                <div class="text-yellow-300 font-bold mb-1">群英樓 🦇</div>
-                                <div class="text-gray-300">中排+上排累加</div>
-                            </div>
-                            <div class="bg-green-900/40 p-2 rounded border border-green-500/40">
-                                <div class="text-yellow-300 font-bold mb-1">耕心樓 🟢</div>
-                                <div class="text-gray-300">全鍵位出擊</div>
-                            </div>
+            <div class="bg-black/80 p-5 rounded-xl backdrop-blur-md border border-yellow-500/30 mb-5 w-full shadow-[0_0_30px_rgba(0,0,0,0.9)]">
+                <h2 class="text-xl text-yellow-400 font-bold mb-3 pixel-font drop-shadow-md">⚠️ 指法定位與色彩引導系統 ⚠️</h2>
+                
+                <!-- Color Coding Legend (Top/Home/Bottom & Anchor Keys) -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4 text-xs text-left">
+                    <div class="bg-sky-950/60 p-3 rounded-lg border-l-4 border-sky-400">
+                        <div class="text-sky-300 font-bold flex items-center gap-1 mb-1">
+                            <span>🔵 上排伸展</span>
+                            <span class="text-[10px] font-mono text-gray-300">(Q~P)</span>
                         </div>
+                        <p class="text-gray-300 text-[11px]">手指由基準鍵「向上伸展」擊打</p>
                     </div>
-                    <div class="text-xs text-gray-400 bg-black/50 p-3 rounded-lg border border-white/10 w-full md:w-64 space-y-1.5">
-                        <p>⚔️ <span class="text-white font-bold">攻擊：</span> 敲對字母發射魔法飛彈</p>
-                        <p>⚡ <span class="text-yellow-300 font-bold">連擊：</span> 20 Combo 觸發聖光狂熱雙倍分</p>
-                        <p>❄️ <span class="text-cyan-300 font-bold">掉寶：</span> 擊落符文怪獲冰凍/爆炎/回血</p>
-                        <p>🛡️ <span class="text-green-300 font-bold">升級：</span> 過關領取強大神聖天賦</p>
-                        <p class="text-red-400 font-bold animate-pulse pt-1 border-t border-white/10">
-                            ☠️ 連續失誤會受到反噬傷害！
-                        </p>
+                    <div class="bg-emerald-950/60 p-3 rounded-lg border-l-4 border-emerald-400">
+                        <div class="text-emerald-300 font-bold flex items-center gap-1 mb-1">
+                            <span>🟢 中排基準</span>
+                            <span class="text-[10px] font-mono text-gray-300">(A~L)</span>
+                        </div>
+                        <p class="text-gray-300 text-[11px]">手指大本營，隨時在此守候</p>
+                    </div>
+                    <div class="bg-orange-950/60 p-3 rounded-lg border-l-4 border-orange-400">
+                        <div class="text-orange-300 font-bold flex items-center gap-1 mb-1">
+                            <span>🟠 下排勾取</span>
+                            <span class="text-[10px] font-mono text-gray-300">(Z~M)</span>
+                        </div>
+                        <p class="text-gray-300 text-[11px]">手指微屈曲「向下勾取」擊打</p>
+                    </div>
+                    <div class="bg-amber-950/60 p-3 rounded-lg border-l-4 border-yellow-400">
+                        <div class="text-yellow-300 font-bold flex items-center gap-1 mb-1">
+                            <span>⚓ 食指錨點</span>
+                            <span class="text-[10px] font-mono text-white">(F & J)</span>
+                        </div>
+                        <p class="text-gray-300 text-[11px]">摸凸起定位！敲中享專屬音效與加分</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-4 items-center text-left border-t border-white/10 pt-3">
+                    <div class="flex-1 text-xs text-gray-300 space-y-1">
+                        <p>⚔️ <span class="text-white font-bold">攻擊：</span> 依字母顏色辨識排別，盲打擊碎掉落符文</p>
+                        <p>⚡ <span class="text-yellow-300 font-bold">狂熱：</span> 20 Combo 啟動聖光狂熱雙倍得分</p>
+                        <p>⌨️ <span class="text-cyan-300 font-bold">引導：</span> 畫面底部提供即時手指鍵位對應光條</p>
+                    </div>
+                    <div class="text-xs text-red-400 bg-red-950/40 p-2.5 rounded border border-red-500/30 w-full md:w-56 font-bold">
+                        ☠️ 請切換為英數半形輸入法，按錯鍵會受到反噬傷害！
                     </div>
                 </div>
             </div>
@@ -354,10 +417,10 @@
                 </button>
             </div>
             
-            <p class="text-xs text-gray-500 mt-4">西寧國小電腦教室教學專用 • 盲打指法養成挑戰</p>
+            <p class="text-xs text-gray-500 mt-3">西寧國小電腦教室專用 • 盲打手指肌肉記憶訓練</p>
         </div>
         
-        <div class="absolute bottom-3 text-xs text-gray-600">
+        <div class="absolute bottom-2 text-xs text-gray-600">
             按鍵即攻擊 • 請務必切換為英數半形模式
         </div>
     </div>
@@ -380,7 +443,7 @@
             </div>
             
             <!-- Stage Info & Combo -->
-            <div class="text-center absolute left-1/2 -translate-x-1/2 top-3 flex flex-col items-center">
+            <div class="text-center absolute left-1/2 -translate-x-1/2 top-2 flex flex-col items-center">
                 <div id="stage-name" class="text-2xl font-bold text-yellow-300 tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">第一關：西寧博學樓</div>
                 <div class="flex items-center gap-2 mt-1">
                     <div class="text-xs text-gray-300 bg-black/60 px-2.5 py-0.5 rounded border border-white/10">進度: <span id="progress-text" class="font-bold">0%</span></div>
@@ -428,6 +491,25 @@
         <div id="god-mode-indicator" class="cheat-indicator">GOD MODE ON</div>
     </div>
 
+    <!-- Mini Keyboard Guide Bar (Docked at Bottom Center) -->
+    <div id="keyboard-guide-bar" class="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 pointer-events-none hidden flex-col items-center bg-black/60 px-3 py-1.5 rounded-xl backdrop-blur-md border border-white/10 shadow-2xl transition-opacity">
+        <div class="flex items-center gap-3 mb-1 text-[9px] text-gray-400 font-mono">
+            <span class="text-sky-400 font-bold">● 上排伸展</span>
+            <span class="text-emerald-400 font-bold">● 中排基準</span>
+            <span class="text-orange-400 font-bold">● 下排勾取</span>
+            <span class="text-yellow-400 font-bold">⚓ F/J 食指定位</span>
+        </div>
+        <!-- 3 Rows Container -->
+        <div class="flex flex-col gap-1 items-center">
+            <!-- Row 1: Q-P -->
+            <div id="kb-row-1" class="flex gap-1"></div>
+            <!-- Row 2: A-L -->
+            <div id="kb-row-2" class="flex gap-1"></div>
+            <!-- Row 3: Z-M -->
+            <div id="kb-row-3" class="flex gap-1"></div>
+        </div>
+    </div>
+
     <!-- UI Overlay: IME Warning Modal -->
     <div id="ime-modal" class="fixed inset-0 bg-red-950/85 z-[100] hidden flex flex-col items-center justify-center p-6 text-center backdrop-blur-md">
         <div class="pixel-font text-6xl mb-4 text-yellow-400 animate-bounce">⚠️</div>
@@ -458,9 +540,7 @@
         <h2 class="text-4xl text-yellow-500 mb-2 font-bold pixel-font">戰利品選擇</h2>
         <p class="text-gray-300 mb-8">選擇一項神聖祝福強化你的守護力量...</p>
         
-        <div id="cards-container" class="flex flex-col md:flex-row gap-6 p-4">
-            <!-- Injected via JS -->
-        </div>
+        <div id="cards-container" class="flex flex-col md:flex-row gap-6 p-4"></div>
     </div>
 
     <!-- UI Overlay: Comprehensive Educational Report Card (Game Over / Victory) -->
@@ -535,6 +615,79 @@
         const GAME_VERSION = "V2.0 PRO";
         document.getElementById('version-display').innerText = GAME_VERSION;
 
+        // --- Key Row Color System ---
+        const ROW_1_KEYS = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"];
+        const ROW_2_KEYS = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
+        const ROW_3_KEYS = ["Z", "X", "C", "V", "B", "N", "M"];
+
+        const KEY_ROW_MAP = {};
+        ROW_1_KEYS.forEach(k => KEY_ROW_MAP[k] = { row: 1, color: '#38bdf8', name: '上排伸展' });
+        ROW_2_KEYS.forEach(k => KEY_ROW_MAP[k] = { row: 2, color: '#10b981', name: '中排基準' });
+        ROW_3_KEYS.forEach(k => KEY_ROW_MAP[k] = { row: 3, color: '#f97316', name: '下排勾取' });
+
+        function isAnchorKey(char) {
+            return char === 'F' || char === 'J';
+        }
+
+        function getKeyColor(char) {
+            if (isAnchorKey(char)) return '#facc15'; // Gold for anchor keys
+            return KEY_ROW_MAP[char] ? KEY_ROW_MAP[char].color : '#60a5fa';
+        }
+
+        // --- Initialize Mini Keyboard Guide ---
+        function initKeyboardGuide() {
+            const r1 = document.getElementById('kb-row-1');
+            const r2 = document.getElementById('kb-row-2');
+            const r3 = document.getElementById('kb-row-3');
+            r1.innerHTML = ''; r2.innerHTML = ''; r3.innerHTML = '';
+
+            const createKeyEl = (k, rowClass) => {
+                const el = document.createElement('div');
+                el.id = `kb-key-${k}`;
+                el.className = `guide-key ${rowClass} ${isAnchorKey(k) ? 'anchor-key' : ''}`;
+                el.innerText = k;
+                return el;
+            };
+
+            ROW_1_KEYS.forEach(k => r1.appendChild(createKeyEl(k, 'top-row')));
+            ROW_2_KEYS.forEach(k => r2.appendChild(createKeyEl(k, 'home-row')));
+            ROW_3_KEYS.forEach(k => r3.appendChild(createKeyEl(k, 'bottom-row')));
+        }
+        initKeyboardGuide();
+
+        function highlightGuideKey(char, isHit = false) {
+            const el = document.getElementById(`kb-key-${char}`);
+            if (!el) return;
+            el.classList.add('key-active');
+            setTimeout(() => {
+                el.classList.remove('key-active');
+            }, isHit ? 180 : 100);
+        }
+
+        // Update target keys ping on guide bar
+        function updateKeyboardGuideTargets() {
+            // Remove target state from all
+            document.querySelectorAll('.guide-key').forEach(el => el.classList.remove('key-target'));
+
+            if (gameState.boss) {
+                // Highlight needed chars for boss
+                gameState.boss.parts.forEach(p => {
+                    if (!p.isDestroyed && p.word[p.typedIndex]) {
+                        const targetChar = p.word[p.typedIndex];
+                        const el = document.getElementById(`kb-key-${targetChar}`);
+                        if (el) el.classList.add('key-target');
+                    }
+                });
+            } else {
+                // Highlight lowest 2 enemies
+                const activeEnemies = gameState.enemies.filter(e => !e.isDying && e.y > 0).slice(0, 3);
+                activeEnemies.forEach(e => {
+                    const el = document.getElementById(`kb-key-${e.char}`);
+                    if (el) el.classList.add('key-target');
+                });
+            }
+        }
+
         // --- Start Screen Visual Effects ---
         function initStartScreenEffects() {
             const container = document.getElementById('fire-container');
@@ -603,6 +756,15 @@
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                 osc.start(now);
                 osc.stop(now + 0.15);
+            } else if (type === 'anchor_chime') {
+                // Bell chime sound for F and J
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now); // A5
+                osc.frequency.setValueAtTime(1318.5, now + 0.08); // E6
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
             } else if (type === 'hit_impact') {
                 osc.type = 'square';
                 osc.frequency.setValueAtTime(300, now);
@@ -748,16 +910,16 @@
                 chars: "ASDFGHJKL", 
                 desc: "中排基準鍵 • 骷髏兵入侵",
                 monsterType: "skeleton",
-                color: "#3b82f6", 
+                color: "#10b981", 
                 enemySpeedBase: 1.4,
                 spawnRate: 1300,
                 targetKills: 25,
                 bossParts: [
                     { id: 'head', word: 'FLASH', label: '核心頭部', offset: {x: 0, y: -80}, w: 110, h: 60, color: '#facc15' },
-                    { id: 'l_arm', word: 'ASK', label: '左神盾', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#60a5fa' },
-                    { id: 'r_arm', word: 'ADD', label: '右神刃', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#60a5fa' },
-                    { id: 'l_leg', word: 'SAD', label: '左腿座', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#3b82f6' },
-                    { id: 'r_leg', word: 'GLAD', label: '右腿座', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#3b82f6' }
+                    { id: 'l_arm', word: 'ASK', label: '左神盾', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#10b981' },
+                    { id: 'r_arm', word: 'ADD', label: '右神刃', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#10b981' },
+                    { id: 'l_leg', word: 'SAD', label: '左腿座', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#059669' },
+                    { id: 'r_leg', word: 'GLAD', label: '右腿座', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#059669' }
                 ]
             },
             { 
@@ -765,16 +927,16 @@
                 chars: "ASDFGHJKLQWERTYUIOP", 
                 desc: "中排 + 上排擴充 • 蝙蝠夜襲",
                 monsterType: "bat",
-                color: "#ef4444", 
+                color: "#38bdf8", 
                 enemySpeedBase: 1.6,
                 spawnRate: 1100,
                 targetKills: 35,
                 bossParts: [
-                    { id: 'head', word: 'POWER', label: '暗黑頭部', offset: {x: 0, y: -80}, w: 110, h: 60, color: '#f87171' },
-                    { id: 'l_arm', word: 'TOP', label: '左魔翼', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#ef4444' },
-                    { id: 'r_arm', word: 'POP', label: '右魔翼', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#ef4444' },
-                    { id: 'l_leg', word: 'OUT', label: '左魔爪', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#dc2626' },
-                    { id: 'r_leg', word: 'TRY', label: '右魔爪', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#dc2626' }
+                    { id: 'head', word: 'POWER', label: '暗黑頭部', offset: {x: 0, y: -80}, w: 110, h: 60, color: '#38bdf8' },
+                    { id: 'l_arm', word: 'TOP', label: '左魔翼', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#0284c7' },
+                    { id: 'r_arm', word: 'POP', label: '右魔翼', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#0284c7' },
+                    { id: 'l_leg', word: 'OUT', label: '左魔爪', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#0369a1' },
+                    { id: 'r_leg', word: 'TRY', label: '右魔爪', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#0369a1' }
                 ]
             },
             { 
@@ -782,16 +944,16 @@
                 chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 
                 desc: "全鍵位出擊 • 史萊姆突擊",
                 monsterType: "slime",
-                color: "#10b981", 
+                color: "#f97316", 
                 enemySpeedBase: 1.8,
                 spawnRate: 950,
                 targetKills: 40,
                 bossParts: [
-                    { id: 'head', word: 'ZXCV', label: '主控頭部', offset: {x: 0, y: -80}, w: 110, h: 60, color: '#4ade80' },
-                    { id: 'l_arm', word: 'VBNM', label: '左毒拳', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#22c55e' },
-                    { id: 'r_arm', word: 'MNBV', label: '右毒拳', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#22c55e' },
-                    { id: 'l_leg', word: 'VCXZ', label: '左足座', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#16a34a' },
-                    { id: 'r_leg', word: 'BCNM', label: '右足座', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#16a34a' }
+                    { id: 'head', word: 'ZXCV', label: '主控頭部', offset: {x: 0, y: -80}, w: 110, h: 60, color: '#f97316' },
+                    { id: 'l_arm', word: 'VBNM', label: '左毒拳', offset: {x: -120, y: 0}, w: 80, h: 80, color: '#ea580c' },
+                    { id: 'r_arm', word: 'MNBV', label: '右毒拳', offset: {x: 120, y: 0}, w: 80, h: 80, color: '#ea580c' },
+                    { id: 'l_leg', word: 'VCXZ', label: '左足座', offset: {x: -60, y: 120}, w: 60, h: 100, color: '#c2410c' },
+                    { id: 'r_leg', word: 'BCNM', label: '右足座', offset: {x: 60, y: 120}, w: 60, h: 100, color: '#c2410c' }
                 ]
             },
             { 
@@ -953,6 +1115,8 @@
             document.getElementById('report-card-container').classList.add('hidden');
             document.getElementById('hud').classList.remove('hidden');
             document.getElementById('hud').classList.add('flex');
+            document.getElementById('keyboard-guide-bar').classList.remove('hidden');
+            document.getElementById('keyboard-guide-bar').classList.add('flex');
             
             resetGame();
             
@@ -1076,7 +1240,7 @@
                     gameState.boss.y += (0.13 * gameState.speedMult) * (dt / 16);
                 }
                 
-                if (gameState.boss.y > canvas.height - 150) {
+                if (gameState.boss.y > canvas.height - 180) {
                     takeDamage(100); 
                     shakeScreen();
                 }
@@ -1156,7 +1320,8 @@
                         e.y += spd * (dt / 16);
                     }
 
-                    if (e.y > canvas.height) {
+                    // Reach threshold
+                    if (e.y > canvas.height - 70) {
                         takeDamage(12);
                         gameState.enemies.splice(i, 1);
                         shakeScreen();
@@ -1197,6 +1362,9 @@
                 p.life -= dt;
                 if (p.life <= 0) gameState.particles.splice(i, 1);
             }
+
+            // Update Keyboard Guide active pings
+            updateKeyboardGuideTargets();
         }
 
         // --- Rune Power Effects ---
@@ -1207,7 +1375,7 @@
                 createFloatingText(x, y, "❄️ 全場暴風雪凍結！", "#38bdf8", 24);
                 createParticles(x, y, '#38bdf8');
             } else if (runeType === 'bomb') {
-                createFloatingText(x, y, "💣 全屏聖光爆破！", "#f87171", 24);
+                createFloatingText(x, y, "💣 全屏聖光爆炎！", "#f87171", 24);
                 shakeScreen();
                 for (let i = gameState.enemies.length - 1; i >= 0; i--) {
                     createParticles(gameState.enemies[i].x, gameState.enemies[i].y, '#f87171');
@@ -1278,7 +1446,7 @@
 
             gameState.boss = {
                 x: canvas.width / 2,
-                y: 150,
+                y: 140,
                 parts: parts
             };
             gameState.bossLockedPartId = null;
@@ -1303,7 +1471,7 @@
                 let maxY = -1000;
                 
                 gameState.enemies.forEach((enemy) => {
-                    if (!enemy.isDying && enemy.y > 30) {
+                    if (!enemy.isDying && enemy.y > 20) {
                         if (enemy.y > maxY) {
                             maxY = enemy.y;
                             targetChar = enemy.char;
@@ -1358,6 +1526,9 @@
 
             gameState.totalKeystrokes++;
 
+            // Highlight guide bar key on press
+            highlightGuideKey(key, false);
+
             // Boss Combat
             if (gameState.boss) {
                 let hitPart = null;
@@ -1381,12 +1552,18 @@
 
                 if (hitPart) {
                     registerCorrectHit(key);
+                    highlightGuideKey(key, true);
                     hitPart.typedIndex++;
                     
                     const targetX = gameState.boss.x + hitPart.offset.x;
                     const targetY = gameState.boss.y + hitPart.offset.y;
                     shootProjectile(targetX, targetY, hitPart.color);
-                    playSound('boss_hit');
+                    
+                    if (isAnchorKey(key)) {
+                        playSound('anchor_chime');
+                    } else {
+                        playSound('boss_hit');
+                    }
 
                     if (hitPart.typedIndex >= hitPart.word.length) {
                         hitPart.isDestroyed = true;
@@ -1419,15 +1596,25 @@
 
             if (targetIdx !== -1) {
                 registerCorrectHit(key);
+                highlightGuideKey(key, true);
                 const enemy = gameState.enemies[targetIdx];
                 enemy.isDying = true;
                 
-                shootProjectile(enemy.x, enemy.y, gameState.feverActive ? '#facc15' : '#60a5fa', enemy);
+                const projColor = gameState.feverActive ? '#facc15' : getKeyColor(key);
+                shootProjectile(enemy.x, enemy.y, projColor, enemy);
                 
-                const earnedScore = Math.round(100 * gameState.scoreMult * (gameState.feverActive ? 2 : 1));
+                // Bonus for Anchor Key
+                let earnedScore = Math.round(100 * gameState.scoreMult * (gameState.feverActive ? 2 : 1));
+                if (isAnchorKey(key)) {
+                    earnedScore += 50;
+                    playSound('anchor_chime');
+                    createFloatingText(enemy.x, enemy.y - 25, "⚓ 食指錨定! +50", "#facc15", 20);
+                } else {
+                    playSound('shoot', { combo: gameState.combo });
+                }
+
                 gameState.score += earnedScore;
                 gameState.killsInStage++;
-                playSound('shoot', { combo: gameState.combo });
                 updateHUD();
             } else {
                 registerMistake(key);
@@ -1490,7 +1677,7 @@
         function shootProjectile(tx, ty, color = '#fbbf24', enemyRef = null) {
             gameState.projectiles.push({
                 x: canvas.width / 2,
-                y: canvas.height - 20,
+                y: canvas.height - 75,
                 targetX: tx,
                 targetY: ty,
                 color: color,
@@ -1705,32 +1892,46 @@
                 });
             }
 
-            // Enemies
+            // Enemies (Color-coded by Row + Anchor Key Bump)
             gameState.enemies.forEach(e => {
                 const boxSize = 54;
                 const bx = e.x - boxSize / 2;
                 const by = e.y - boxSize / 2;
+                const isAnchor = isAnchorKey(e.char);
+                const rowColor = getKeyColor(e.char);
 
-                ctx.shadowBlur = e.rune ? 20 : 12;
-                ctx.shadowColor = e.rune ? '#f59e0b' : (gameState.frostTimer > 0 ? '#38bdf8' : stage.color);
+                ctx.shadowBlur = isAnchor ? 25 : (e.rune ? 20 : 12);
+                ctx.shadowColor = isAnchor ? '#facc15' : (e.rune ? '#f59e0b' : (gameState.frostTimer > 0 ? '#38bdf8' : rowColor));
                 
                 ctx.fillStyle = e.isDying ? '#475569' : (gameState.frostTimer > 0 ? '#0c4a6e' : '#1e293b');
                 ctx.beginPath();
                 ctx.roundRect(bx, by, boxSize, boxSize, 10);
                 ctx.fill();
                 
-                ctx.lineWidth = e.rune ? 3 : 2;
-                ctx.strokeStyle = e.rune ? '#facc15' : (gameState.frostTimer > 0 ? '#38bdf8' : stage.color);
+                // Border with row color or anchor gold
+                ctx.lineWidth = isAnchor ? 3.5 : (e.rune ? 3 : 2.5);
+                ctx.strokeStyle = isAnchor ? '#facc15' : (e.rune ? '#facc15' : (gameState.frostTimer > 0 ? '#38bdf8' : rowColor));
                 ctx.stroke();
                 ctx.shadowBlur = 0;
 
-                drawMonsterPixelIcon(ctx, e.x, e.y - 15, e.monsterType, e.rune);
+                // Tactile Bump for F and J
+                if (isAnchor) {
+                    ctx.fillStyle = '#facc15';
+                    ctx.fillRect(e.x - 12, e.y + 19, 24, 4); // Distinct bump line!
+                    // Mini Anchor Badge
+                    ctx.font = "8px 'Press Start 2P'";
+                    ctx.fillStyle = '#facc15';
+                    ctx.fillText("⚓", e.x, e.y - 20);
+                }
 
+                drawMonsterPixelIcon(ctx, e.x, e.y - 14, e.monsterType, e.rune, isAnchor);
+
+                // Letter colored by Row Color
                 ctx.font = "bold 24px 'Press Start 2P'";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.fillStyle = e.rune ? '#facc15' : '#ffffff';
-                ctx.fillText(e.char, e.x, e.y + 11);
+                ctx.fillStyle = isAnchor ? '#fef08a' : (e.rune ? '#facc15' : rowColor);
+                ctx.fillText(e.char, e.x, e.y + 7);
             });
 
             // Projectiles
@@ -1755,8 +1956,7 @@
             });
         }
 
-        function drawMonsterPixelIcon(ctx, cx, cy, type, rune) {
-            ctx.fillStyle = '#f87171';
+        function drawMonsterPixelIcon(ctx, cx, cy, type, rune, isAnchor) {
             if (rune === 'frost') {
                 ctx.font = '10px sans-serif';
                 ctx.fillText('❄️', cx, cy);
@@ -1770,6 +1970,8 @@
                 ctx.fillText('💖', cx, cy);
                 return;
             }
+
+            if (isAnchor) return; // Anchor already has ⚓ badge
 
             if (type === 'skeleton') {
                 ctx.fillStyle = '#ffffff';
@@ -1887,6 +2089,7 @@
             gameState.status = 'GAMEOVER';
             stopBGM();
             document.getElementById('hud').classList.add('hidden');
+            document.getElementById('keyboard-guide-bar').classList.add('hidden');
             renderReportCard(false);
         }
 
@@ -1894,6 +2097,7 @@
             gameState.status = 'VICTORY';
             stopBGM();
             document.getElementById('hud').classList.add('hidden');
+            document.getElementById('keyboard-guide-bar').classList.add('hidden');
             renderReportCard(true);
         }
 
