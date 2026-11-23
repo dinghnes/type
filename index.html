@@ -204,11 +204,10 @@
         .unit-btn.cooldown::after {
             content: '';
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            bottom: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6);
             border-radius: 8px;
             animation: sweep var(--cd) linear forwards;
-            transform-origin: bottom;
         }
 
         @keyframes sweep {
@@ -340,6 +339,18 @@
         
         #answer-input.shake {
             animation: shake 0.3s;
+            border-color: #F44336;
+        }
+
+        #ime-warning {
+            display: none;
+            margin-top: 6px;
+            padding: 4px 12px;
+            background: rgba(244, 67, 54, 0.9);
+            color: #fff;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: bold;
         }
 
         @keyframes shake {
@@ -560,8 +571,9 @@
                 <span id="reward-preview" class="reward-preview">獎勵: $150</span>
             </div>
             <div id="input-area">
-                <input type="text" id="answer-input" placeholder="看單字打字..." autocomplete="off" spellcheck="false">
+                <input type="text" id="answer-input" placeholder="看單字打字..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
             </div>
+            <div id="ime-warning">⚠️ 偵測到中文輸入法，請切換為「英數半形」模式！</div>
         </div>
     </div>
 
@@ -674,7 +686,7 @@
             <input type="text" id="player-name-input" maxlength="8" placeholder="輸入名字">
         </div>
         
-        <button id="submit-score-btn" class="start-btn" onclick="submitScore()">登記並回主選單</button>
+        <button id="submit-score-btn" class="start-btn" onclick="submitScore()">登記並看英雄榜</button>
     </div>
 
     <script>
@@ -744,14 +756,23 @@
         // --- Game Config & State ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let animationId;
+        let animationId = null;
         let lastTime = 0;
+        let spawnTimeoutId = null;
+        let cooldownTimers = [null, null, null, null];
+        let isComposing = false;
         
         const GAME_WIDTH = 1000;
         const GAME_HEIGHT = 400;
         const GROUND_Y = 320;
         const BASE_WIDTH = 100; // 城堡寬度，也是安全牆的位置
         let MAX_LEVELS = 3; 
+        const BOSS_WAVE_WORD_COUNTS = {
+            BOSS_BASIC: 25,
+            BOSS_INTER: 30,
+            BOSS_ADV: 35,
+            BOSS_ALL: 40
+        };
         
         // Unit Config
         const UNIT_TYPES = [
@@ -776,8 +797,10 @@
             enemies: [],
             particles: [],
             activeList: [],
+            bossPool: [],
             currentVocab: null,
-            currentVocabIndex: -1, 
+            currentVocabIndex: -1,
+            typedLength: 0,
             deck: [], 
             difficulty: 1,
             unitCooldowns: [0, 0, 0, 0], // 回復為 4 格
@@ -858,28 +881,28 @@
                 }
             }
 
-            update(dt, targets) {
-                if (this.flashTime > 0) this.flashTime--;
-                this.frame++;
+            update(frameScale, targets) {
+                if (this.flashTime > 0) this.flashTime = Math.max(0, this.flashTime - frameScale);
+                this.frame += frameScale;
 
                 if (Math.abs(this.knockbackVelocity) > 0.1) {
-                    this.x += this.knockbackVelocity;
-                    this.knockbackVelocity *= 0.8;
+                    this.x += this.knockbackVelocity * frameScale;
+                    this.knockbackVelocity *= Math.pow(0.8, frameScale);
                     // 注意：這裡不 return，繼續執行下方的邊界檢查，防止被擊退進牆裡
                 }
 
                 let targetUnit = null;
                 let minUnitDist = Infinity;
 
-                // 1. 搜尋最近的單位
+                // 1. 搜尋最近的單位 (僅偵測前方或彼此重疊的單位，避免回頭打身後目標)
                 targets.forEach(t => {
                     // 絕對忽略屍體
                     if (t.hp <= 0) return;
 
                     let dist = this.isEnemy ? (this.x - (t.x + t.width)) : (t.x - (this.x + this.width));
+                    const minOverlap = -(this.width + t.width);
                     
-                    // 擴大搜尋範圍 (-200)，確保即使重疊也能偵測到
-                    if (dist >= -200) { 
+                    if (dist >= minOverlap) { 
                         if (dist < minUnitDist) {
                             minUnitDist = dist;
                             targetUnit = t;
@@ -904,7 +927,6 @@
                     finalTarget = targetUnit;
                 } 
                 // 次要判定：如果單位打不到(太遠或躲在牆後)，但城堡在射程內，就直接打城堡！
-                // 這行修正了解決敵人卡在門口不攻擊的問題
                 else if (baseDist <= this.range) {
                     finalTarget = "BASE";
                 }
@@ -916,16 +938,16 @@
                         this.attack(finalTarget);
                         this.attackTimer = this.attackSpeed;
                     } else {
-                        this.attackTimer--;
+                        this.attackTimer -= frameScale;
                     }
                 } else {
                     this.state = 'walk';
-                    this.attackTimer = Math.max(0, this.attackTimer - 1);
+                    this.attackTimer = Math.max(0, this.attackTimer - frameScale);
                     
                     if (this.isEnemy) {
-                        this.x -= this.speed;
+                        this.x -= this.speed * frameScale;
                     } else {
-                        this.x += this.speed;
+                        this.x += this.speed * frameScale;
                     }
                 }
 
@@ -945,34 +967,43 @@
 
             attack(target) {
                 const particleX = this.isEnemy ? this.x : this.x + this.width;
+                const particleY = GROUND_Y - this.height / 2;
                 let actualDmg = this.dmg;
                 
                 if (target === "BASE") {
                     if (this.isEnemy) {
-                          spawnParticle(particleX, this.y + this.height/2, 'pow');
-                          gameState.playerHp -= actualDmg;
-                          spawnParticle(50, GROUND_Y - 150, 'dmg', actualDmg); // 顯示在城堡上方
+                        spawnParticle(particleX, particleY, 'pow');
+                        gameState.playerHp -= actualDmg;
+                        spawnParticle(50, GROUND_Y - 150, 'dmg', actualDmg); // 顯示在城堡上方
                     } else {
                         if (gameState.bossInvincible) {
-                             spawnParticle(GAME_WIDTH - 70, GROUND_Y - 80, 'text', 0, "SHIELD!");
+                            spawnParticle(GAME_WIDTH - 70, GROUND_Y - 80, 'text', 0, "SHIELD!");
                         } else {
-                             spawnParticle(particleX, this.y + this.height/2, 'pow');
-                             gameState.enemyHp -= actualDmg;
-                             spawnParticle(GAME_WIDTH - 50, GROUND_Y - 150, 'dmg', actualDmg); // 顯示在城堡上方
+                            spawnParticle(particleX, particleY, 'pow');
+                            gameState.enemyHp -= actualDmg;
+                            spawnParticle(GAME_WIDTH - 50, GROUND_Y - 150, 'dmg', actualDmg); // 顯示在城堡上方
+                            if (this.type === 'titan') {
+                                gameState.enemies.forEach(e => {
+                                    if (e.hp > 0 && Math.abs((e.x + e.width/2) - (GAME_WIDTH - BASE_WIDTH)) < 80) {
+                                        e.takeDamage(actualDmg);
+                                        spawnParticle(e.x + e.width/2, GROUND_Y - e.height - 20, 'dmg', actualDmg);
+                                    }
+                                });
+                            }
                         }
                     }
                 } else {
-                    spawnParticle(particleX, this.y + this.height/2, 'pow');
+                    spawnParticle(particleX, particleY, 'pow');
                     target.takeDamage(actualDmg);
                     spawnParticle(target.x + target.width/2, GROUND_Y - target.height - 20, 'dmg', actualDmg);
 
-                    if(this.type === 'titan') {
-                         gameState.enemies.forEach(e => {
-                             if(Math.abs(e.x - target.x) < 80) {
-                                 e.takeDamage(actualDmg);
-                                 spawnParticle(e.x + e.width/2, GROUND_Y - e.height - 20, 'dmg', actualDmg);
-                             }
-                         });
+                    if (this.type === 'titan') {
+                        gameState.enemies.forEach(e => {
+                            if (e !== target && e.hp > 0 && Math.abs(e.x - target.x) < 80) {
+                                e.takeDamage(actualDmg);
+                                spawnParticle(e.x + e.width/2, GROUND_Y - e.height - 20, 'dmg', actualDmg);
+                            }
+                        });
                     }
                 }
             }
@@ -1011,7 +1042,7 @@
                     
                     if (this.type === 'basic') {
                         ctx.beginPath();
-                        ctx.arc(cx, cy + 5*scaleY, drawW/2, 0, Math.PI*2);
+                        ctx.ellipse(cx, cy + 5*scaleY, drawW/2, drawH/2, 0, 0, Math.PI*2);
                         ctx.fill(); ctx.stroke();
                         ctx.beginPath();
                         ctx.moveTo(cx - 15*scaleX, cy - 10*scaleY);
@@ -1116,29 +1147,96 @@
                     }
 
                 } else {
-                      if (this.type === 'doge') {
-                        ctx.fillStyle = this.color;
+                    if (this.type === 'doge') {
+                        ctx.fillStyle = this.flashTime > 0 ? '#fff' : this.color;
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 2;
                         ctx.fillRect(drawX, drawY + 10*scaleY, drawW, drawH - 10*scaleY);
+                        ctx.strokeRect(drawX, drawY + 10*scaleY, drawW, drawH - 10*scaleY);
                         ctx.beginPath();
                         ctx.moveTo(drawX + 5*scaleX, drawY + 10*scaleY);
                         ctx.lineTo(drawX + 10*scaleX, drawY);
                         ctx.lineTo(drawX + 15*scaleX, drawY + 10*scaleY);
-                        ctx.fill();
+                        ctx.fill(); ctx.stroke();
                         ctx.beginPath();
                         ctx.moveTo(drawX + 25*scaleX, drawY + 10*scaleY);
                         ctx.lineTo(drawX + 30*scaleX, drawY);
                         ctx.lineTo(drawX + 35*scaleX, drawY + 10*scaleY);
-                        ctx.fill();
+                        ctx.fill(); ctx.stroke();
                         ctx.fillStyle = '#000';
                         ctx.fillRect(drawX + 5*scaleX, drawY + 20*scaleY, 5*scaleX, 5*scaleY);
                         ctx.fillRect(drawX + 25*scaleX, drawY + 20*scaleY, 5*scaleX, 5*scaleY);
+                    } else if (this.type === 'pigge') {
+                        const legOffset = Math.sin(this.frame * 0.15) * 4 * scaleX;
+                        ctx.fillStyle = this.flashTime > 0 ? '#fff' : this.color;
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 2;
+                        // Body
+                        ctx.beginPath();
+                        ctx.ellipse(cx + 4*scaleX, cy + 4*scaleY, drawW*0.44, drawH*0.38, 0, 0, Math.PI*2);
+                        ctx.fill(); ctx.stroke();
+                        // Ears
+                        ctx.beginPath();
+                        ctx.moveTo(drawX + 16*scaleX, drawY + 12*scaleY);
+                        ctx.lineTo(drawX + 22*scaleX, drawY);
+                        ctx.lineTo(drawX + 30*scaleX, drawY + 10*scaleY);
+                        ctx.fill(); ctx.stroke();
+                        // Snout (facing left)
+                        ctx.fillStyle = this.flashTime > 0 ? '#fff' : '#F06292';
+                        ctx.beginPath();
+                        ctx.ellipse(drawX + 8*scaleX, cy + 6*scaleY, 9*scaleX, 11*scaleY, 0, 0, Math.PI*2);
+                        ctx.fill(); ctx.stroke();
+                        // Nostrils & eye
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(drawX + 4*scaleX, cy + 2*scaleY, 2.5*scaleX, 4*scaleY);
+                        ctx.fillRect(drawX + 9*scaleX, cy + 2*scaleY, 2.5*scaleX, 4*scaleY);
+                        ctx.beginPath();
+                        ctx.arc(drawX + 22*scaleX, drawY + 22*scaleY, 3*Math.min(scaleX, scaleY), 0, Math.PI*2);
+                        ctx.fill();
+                        // Legs
+                        ctx.fillStyle = this.flashTime > 0 ? '#fff' : this.color;
+                        ctx.fillRect(drawX + 16*scaleX + legOffset, drawY + drawH - 12*scaleY, 9*scaleX, 12*scaleY);
+                        ctx.strokeRect(drawX + 16*scaleX + legOffset, drawY + drawH - 12*scaleY, 9*scaleX, 12*scaleY);
+                        ctx.fillRect(drawX + drawW - 22*scaleX - legOffset, drawY + drawH - 12*scaleY, 9*scaleX, 12*scaleY);
+                        ctx.strokeRect(drawX + drawW - 22*scaleX - legOffset, drawY + drawH - 12*scaleY, 9*scaleX, 12*scaleY);
+                    } else if (this.type === 'hippo') {
+                        const legOffset = Math.sin(this.frame * 0.12) * 3 * scaleX;
+                        ctx.fillStyle = this.flashTime > 0 ? '#fff' : this.color;
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 2;
+                        // Heavy Body
+                        ctx.fillRect(drawX + 22*scaleX, drawY + 12*scaleY, drawW - 24*scaleX, drawH - 22*scaleY);
+                        ctx.strokeRect(drawX + 22*scaleX, drawY + 12*scaleY, drawW - 24*scaleX, drawH - 22*scaleY);
+                        // Big Snout/Head (left)
+                        ctx.fillStyle = this.flashTime > 0 ? '#fff' : '#9FA8DA';
+                        ctx.fillRect(drawX, drawY + 18*scaleY, 34*scaleX, drawH - 30*scaleY);
+                        ctx.strokeRect(drawX, drawY + 18*scaleY, 34*scaleX, drawH - 30*scaleY);
+                        // Small Ears
+                        ctx.fillStyle = this.flashTime > 0 ? '#fff' : this.color;
+                        ctx.beginPath();
+                        ctx.arc(drawX + 32*scaleX, drawY + 10*scaleY, 6*Math.min(scaleX, scaleY), 0, Math.PI*2);
+                        ctx.fill(); ctx.stroke();
+                        // Eye & Teeth
+                        ctx.fillStyle = '#000';
+                        ctx.beginPath();
+                        ctx.arc(drawX + 26*scaleX, drawY + 24*scaleY, 3*Math.min(scaleX, scaleY), 0, Math.PI*2);
+                        ctx.fill();
+                        ctx.fillStyle = '#fff';
+                        ctx.fillRect(drawX + 5*scaleX, drawY + drawH - 18*scaleY, 6*scaleX, 6*scaleY);
+                        ctx.fillRect(drawX + 16*scaleX, drawY + drawH - 18*scaleY, 6*scaleX, 6*scaleY);
+                        // Sturdy Legs
+                        ctx.fillStyle = this.flashTime > 0 ? '#fff' : this.color;
+                        ctx.fillRect(drawX + 26*scaleX + legOffset, drawY + drawH - 12*scaleY, 14*scaleX, 12*scaleY);
+                        ctx.strokeRect(drawX + 26*scaleX + legOffset, drawY + drawH - 12*scaleY, 14*scaleX, 12*scaleY);
+                        ctx.fillRect(drawX + drawW - 24*scaleX - legOffset, drawY + drawH - 12*scaleY, 14*scaleX, 12*scaleY);
+                        ctx.strokeRect(drawX + drawW - 24*scaleX - legOffset, drawY + drawH - 12*scaleY, 14*scaleX, 12*scaleY);
                     } else {
                         ctx.fillStyle = this.color;
                         ctx.fillRect(drawX, drawY, drawW, drawH);
                     }
                 }
 
-                const hpPct = this.hp / this.maxHp;
+                const hpPct = Math.max(0, this.hp / this.maxHp);
                 ctx.fillStyle = 'red';
                 ctx.fillRect(drawX, drawY - 8*scaleY, drawW, 4*scaleY);
                 ctx.fillStyle = '#0f0';
@@ -1156,9 +1254,9 @@
                 this.val = val;
                 this.text = text;
             }
-            update() {
-                this.life--;
-                this.y -= 1.0;
+            update(frameScale = 1) {
+                this.life -= frameScale;
+                this.y -= 1.0 * frameScale;
             }
             draw(ctx, scaleX, scaleY) {
                 const dx = this.x * scaleX;
@@ -1201,6 +1299,26 @@
 
         // --- Logic ---
 
+        function clearUnitCooldownVisuals() {
+            UNIT_TYPES.forEach((_, i) => {
+                if (cooldownTimers[i]) {
+                    clearTimeout(cooldownTimers[i]);
+                    cooldownTimers[i] = null;
+                }
+                const btn = document.getElementById(`btn-${i+1}`);
+                if (btn) btn.classList.remove('cooldown');
+            });
+        }
+
+        function sampleWords(pool, count) {
+            const copy = pool.slice();
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy.slice(0, Math.min(count, copy.length));
+        }
+
         function tryBuyUnit(index) {
             if (!gameState.isRunning) return;
             const unit = UNIT_TYPES[index];
@@ -1216,13 +1334,25 @@
                 gameState.cats.push(cat);
                 updateHUD();
                 const btn = document.getElementById(`btn-${index+1}`);
+                if (cooldownTimers[index]) {
+                    clearTimeout(cooldownTimers[index]);
+                }
+                btn.classList.remove('cooldown');
+                void btn.offsetWidth; // 重置 CSS 動畫狀態
                 btn.classList.add('cooldown');
                 btn.style.setProperty('--cd', unit.cd + 'ms');
-                setTimeout(() => btn.classList.remove('cooldown'), unit.cd);
+                cooldownTimers[index] = setTimeout(() => {
+                    btn.classList.remove('cooldown');
+                    cooldownTimers[index] = null;
+                }, unit.cd);
             }
         }
 
         function spawnEnemy() {
+            if (spawnTimeoutId) {
+                clearTimeout(spawnTimeoutId);
+                spawnTimeoutId = null;
+            }
             if (!gameState.isRunning) return;
             const r = Math.random();
             let type = 'doge';
@@ -1252,43 +1382,56 @@
             if (lvl === 3 || gameState.mode === 'BOSS') baseTime = 1200;
             const nextTime = Math.max(800, baseTime - (gameState.difficulty * 50));
             if (gameState.difficulty < 15) gameState.difficulty += 0.1; 
-            setTimeout(spawnEnemy, nextTime);
+            spawnTimeoutId = setTimeout(spawnEnemy, nextTime);
         }
 
-        // ... (其他既有函數: initGame, refillDeck, speakWord, manualSpeak, pickNewWord, updateWordsRemaining, updateWordDisplay, successWord, addMoney, spawnParticle, updateHUD, update, loop, controls, GAS logic...) ...
-        // (因字數限制，這裡省略部分未修改的函數，但在實際檔案中請保留)
-
         function initGame(level) {
+            if (spawnTimeoutId) {
+                clearTimeout(spawnTimeoutId);
+                spawnTimeoutId = null;
+            }
+            clearUnitCooldownVisuals();
+            setImeWarning(false);
+            isComposing = false;
+            cheatCodeBuffer = "";
+
             gameState.level = level;
             const unitVal = document.getElementById('unit-select').value;
             gameState.activeList = [];
+            gameState.bossPool = [];
             
             if (unitVal.startsWith('BOSS')) {
                 gameState.mode = 'BOSS';
                 MAX_LEVELS = 1;
                 
                 if (unitVal === 'BOSS_BASIC') {
-                    for(let i=1; i<=12; i++) gameState.activeList = gameState.activeList.concat(UNIT_DATA[`U${i}`]);
+                    for(let i=1; i<=12; i++) gameState.bossPool = gameState.bossPool.concat(UNIT_DATA[`U${i}`]);
                     document.getElementById('level-indicator').innerText = "基礎魔王城 (U1-12)";
                     gameState.enemyHp = 10000; gameState.maxEnemyHp = 10000;
                 } else if (unitVal === 'BOSS_INTER') {
-                    for(let i=13; i<=24; i++) gameState.activeList = gameState.activeList.concat(UNIT_DATA[`U${i}`]);
+                    for(let i=13; i<=24; i++) gameState.bossPool = gameState.bossPool.concat(UNIT_DATA[`U${i}`]);
                     document.getElementById('level-indicator').innerText = "中級魔王城 (U13-24)";
                     gameState.enemyHp = 15000; gameState.maxEnemyHp = 15000;
                 } else if (unitVal === 'BOSS_ADV') {
-                    for(let i=25; i<=36; i++) gameState.activeList = gameState.activeList.concat(UNIT_DATA[`U${i}`]);
+                    for(let i=25; i<=36; i++) gameState.bossPool = gameState.bossPool.concat(UNIT_DATA[`U${i}`]);
                     document.getElementById('level-indicator').innerText = "進階魔王城 (U25-36)";
                     gameState.enemyHp = 20000; gameState.maxEnemyHp = 20000;
                 } else {
-                    for(let i=1; i<=36; i++) gameState.activeList = gameState.activeList.concat(UNIT_DATA[`U${i}`]);
+                    for(let i=1; i<=36; i++) gameState.bossPool = gameState.bossPool.concat(UNIT_DATA[`U${i}`]);
                     document.getElementById('level-indicator').innerText = "終極魔王城 (All)";
                     gameState.enemyHp = 30000; gameState.maxEnemyHp = 30000;
                 }
 
+                const waveSize = BOSS_WAVE_WORD_COUNTS[unitVal] || 30;
+                gameState.activeList = sampleWords(gameState.bossPool, waveSize);
+
                 gameState.playerHp = 3000; gameState.maxPlayerHp = 3000;
                 gameState.bossInvincible = true;
-                document.getElementById('shield-indicator').style.display = 'block';
-                document.getElementById('shield-indicator').innerText = "🛡️ 無敵護盾 (消除單字以解除)";
+                const shieldEl = document.getElementById('shield-indicator');
+                shieldEl.style.display = 'block';
+                shieldEl.style.color = 'cyan';
+                shieldEl.style.textShadow = '0 0 5px blue';
+                shieldEl.innerText = "🛡️ 無敵護盾 (打完本波單字以解除)";
 
             } else {
                 gameState.mode = 'NORMAL';
@@ -1311,7 +1454,8 @@
                 document.getElementById('level-indicator').innerText = `Level ${level}/${MAX_LEVELS} - ${unitVal}`;
             }
 
-            gameState.money = 200; 
+            gameState.money = 200;
+            gameState.maxMoney = 2000;
             if (level === 1) gameState.score = 0; 
             gameState.cats = [];
             gameState.enemies = [];
@@ -1320,56 +1464,73 @@
             gameState.unitCooldowns = [0,0,0,0];
             gameState.nextSpeakTime = 0;
             gameState.wordStartTime = 0;
+            gameState.typedLength = 0;
+            gameState.consecutiveMistakes = 0;
+            gameState.lightningTimer = 0;
             
             refillDeck();
             updateHUD();
             pickNewWord();
-            setTimeout(spawnEnemy, 3000);
+            spawnTimeoutId = setTimeout(spawnEnemy, 3000);
             
+            document.getElementById('answer-input').classList.remove('shake');
             document.getElementById('answer-input').focus();
         }
 
-        function refillDeck() {
+        function refillDeck(bannerText = "關卡開始!") {
             gameState.deck = Array.from({length: gameState.activeList.length}, (_, i) => i);
-            spawnParticle(GAME_WIDTH/2, 50, 'text', 0, "關卡開始!");
+            spawnParticle(GAME_WIDTH/2, 135, 'text', 0, bannerText);
             updateWordsRemaining();
         }
 
         function speakWord(text) {
-            if (!gameState.isRunning) return;
-            if (!window.speechSynthesis) return;
+            if (!gameState.isRunning || !text) return;
+            if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') return;
             const btn = document.getElementById('speaker-btn');
             btn.classList.add('speaking');
             setTimeout(() => btn.classList.remove('speaking'), 1000);
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-US';
-            utterance.rate = 1.0; 
-            window.speechSynthesis.speak(utterance);
+            try {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 1.0; 
+                window.speechSynthesis.speak(utterance);
+            } catch (e) {
+                // 忽略瀏覽器語音合成限制
+            }
         }
 
         function manualSpeak() {
-             if (gameState.currentVocab) {
-                 speakWord(gameState.currentVocab.en);
-                 gameState.nextSpeakTime = Date.now() + 4000;
-             }
+            if (gameState.currentVocab) {
+                speakWord(gameState.currentVocab.en);
+                gameState.nextSpeakTime = Date.now() + 4000;
+            }
+            answerInput.focus();
         }
 
         function pickNewWord() {
             if (gameState.deck.length === 0) {
                 if (gameState.mode === 'BOSS') {
+                    const unitVal = document.getElementById('unit-select').value;
+                    const waveSize = BOSS_WAVE_WORD_COUNTS[unitVal] || 30;
+
                     if (gameState.bossInvincible) {
                         gameState.bossInvincible = false;
-                        spawnParticle(GAME_WIDTH/2, 100, 'text', 0, "護盾解除!");
-                        document.getElementById('shield-indicator').style.display = 'none';
-                        document.getElementById('shield-indicator').innerText = "敵方基地脆弱!";
-                        gameState.enemyHp = Math.min(gameState.enemyHp, 5000); 
-                    }
-                    if (!gameState.bossInvincible) {
-                         refillDeck();
+                        spawnParticle(GAME_WIDTH/2, 100, 'text', 0, "⚔️ 護盾解除！全力攻城！");
+                        const shieldEl = document.getElementById('shield-indicator');
+                        shieldEl.style.display = 'block';
+                        shieldEl.style.color = '#00E676';
+                        shieldEl.style.textShadow = '0 0 5px #000';
+                        shieldEl.innerText = "⚔️ 護盾已破！繼續打字賺錢攻城！";
+                        gameState.enemyHp = Math.min(gameState.enemyHp, 5000);
+                        gameState.activeList = sampleWords(gameState.bossPool, waveSize);
+                        refillDeck("無盡單字啟動!");
+                    } else {
+                        gameState.activeList = sampleWords(gameState.bossPool, waveSize);
+                        refillDeck("新一波單字!");
                     }
                 } else {
-                    refillDeck(); 
+                    refillDeck("新一輪複習!"); 
                 }
             }
 
@@ -1380,6 +1541,7 @@
                 
                 gameState.currentVocab = gameState.activeList[vocabIndex];
                 gameState.currentVocabIndex = vocabIndex;
+                gameState.typedLength = 0;
                 gameState.wordStartTime = Date.now(); 
                 gameState.nextSpeakTime = Date.now(); 
                 
@@ -1389,30 +1551,39 @@
                 if (len >= 7) reward = 300;
                 gameState.currentReward = reward;
 
-                document.getElementById('current-meaning').innerHTML = `${gameState.currentVocab.zh} <span class="english-hint">${gameState.currentVocab.en}</span>`;
+                const meaningEl = document.getElementById('current-meaning');
+                meaningEl.textContent = `${gameState.currentVocab.zh} `;
+                const engHint = document.createElement('span');
+                engHint.className = 'english-hint';
+                engHint.textContent = gameState.currentVocab.en;
+                meaningEl.appendChild(engHint);
+
                 document.getElementById('reward-preview').textContent = `獎勵: $${reward}`;
-            } else {
-                gameState.currentVocab = { en: "ATTACK!", zh: "全力攻擊城堡!" };
-                document.getElementById('current-meaning').innerText = "全力攻擊城堡!";
-                document.getElementById('reward-preview').innerText = "";
-                document.getElementById('target-word-display').innerHTML = "";
-                document.getElementById('answer-input').placeholder = "單字已清空!";
             }
             
             const input = document.getElementById('answer-input');
             input.value = "";
+            input.placeholder = "看單字打字...";
             input.focus();
-            if (gameState.deck.length > 0) updateWordDisplay("");
+            updateWordDisplay("");
             updateWordsRemaining();
         }
         
         function updateWordsRemaining() {
-            document.getElementById('words-remaining').innerText = `剩餘單字: ${gameState.deck.length + (gameState.currentVocab && gameState.deck.length > 0 ? 1 : 0)}`;
+            const count = gameState.deck.length + (gameState.currentVocab ? 1 : 0);
+            const label = document.getElementById('words-remaining');
+            if (gameState.mode === 'BOSS') {
+                label.innerText = gameState.bossInvincible
+                    ? `破盾剩餘: ${count} 字`
+                    : `無盡波次剩餘: ${count} 字`;
+            } else {
+                label.innerText = `剩餘單字: ${count}`;
+            }
         }
         
         function updateWordDisplay(currentInput) {
             const container = document.getElementById('target-word-display');
-            if (!gameState.currentVocab || gameState.deck.length === 0 && !gameState.bossInvincible && gameState.mode === 'BOSS') {
+            if (!gameState.currentVocab) {
                 container.innerHTML = "";
                 return;
             }
@@ -1436,56 +1607,148 @@
         }
 
         // Answer Input Logic
-        const answerInput = document.getElementById('answer-input'); // Added missing declaration
+        const answerInput = document.getElementById('answer-input');
 
-        answerInput.addEventListener('keydown', (e) => {
-            // 修正：忽略召喚貓咪的熱鍵 (1-4)，避免誤判為打錯字觸發閃電
-            if (['1', '2', '3', '4'].includes(e.key)) return;
+        function setImeWarning(show) {
+            const warn = document.getElementById('ime-warning');
+            if (warn) warn.style.display = show ? 'block' : 'none';
+        }
 
-            if (e.key.length > 1 || e.ctrlKey || e.metaKey) return; 
-            e.preventDefault(); 
-            if (gameState.deck.length === 0 && gameState.mode === 'BOSS') return; 
+        function isCheatEntryInProgress() {
+            for (let len = 3; len <= cheatCodeBuffer.length; len++) {
+                if (CHEAT_CODE.startsWith(cheatCodeBuffer.slice(-len))) {
+                    return true;
+                }
+            }
+            return false;
+        }
 
+        function processTypedChar(typedRawChar) {
+            if (!gameState.isRunning || !gameState.currentVocab) return;
             const targetWord = gameState.currentVocab.en;
-            const currentVal = answerInput.value;
-            const nextCharIndex = currentVal.length;
-            
-            if (nextCharIndex >= targetWord.length) return;
-            
-            const expectedChar = targetWord[nextCharIndex].toLowerCase();
-            const typedChar = e.key.toLowerCase();
-            
+            if (gameState.typedLength >= targetWord.length) return;
+
+            const expectedChar = targetWord[gameState.typedLength].toLowerCase();
+            const typedChar = typedRawChar.toLowerCase();
+
             if (typedChar === expectedChar) {
-                answerInput.value += targetWord[nextCharIndex]; 
+                gameState.typedLength++;
+                answerInput.value = targetWord.slice(0, gameState.typedLength);
                 updateWordDisplay(answerInput.value);
-                // 正確輸入時，重置連續錯誤計數
                 gameState.consecutiveMistakes = 0;
-                
-                if (answerInput.value.length === targetWord.length) {
+                setImeWarning(false);
+
+                if (gameState.typedLength === targetWord.length) {
                     successWord();
                 }
             } else {
+                answerInput.value = targetWord.slice(0, gameState.typedLength);
+                if (isCheatEntryInProgress()) return;
+
                 answerInput.classList.add('shake');
                 setTimeout(() => answerInput.classList.remove('shake'), 200);
-                
-                // 錯誤輸入：增加計數並檢查是否觸發閃電
+
                 gameState.consecutiveMistakes++;
                 if (gameState.consecutiveMistakes >= 3) {
                     triggerLightningStrike();
-                    gameState.consecutiveMistakes = 0; // 觸發後重置，重新計算下一次 3 連錯
+                    gameState.consecutiveMistakes = 0;
                 }
             }
+        }
+
+        answerInput.addEventListener('compositionstart', () => {
+            isComposing = true;
+            setImeWarning(true);
         });
-        
-        answerInput.addEventListener('keyup', (e) => {
+
+        answerInput.addEventListener('compositionend', () => {
+            isComposing = false;
+            const targetWord = gameState.currentVocab ? gameState.currentVocab.en : "";
+            answerInput.value = targetWord.slice(0, gameState.typedLength);
+            updateWordDisplay(answerInput.value);
+        });
+
+        answerInput.addEventListener('keydown', (e) => {
+            if (!gameState.isRunning || !gameState.currentVocab) return;
+
+            // 忽略召喚貓咪的熱鍵 (1-4)，避免誤判為打錯字觸發閃電
+            if (['1', '2', '3', '4'].includes(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) return;
+
+            // 偵測中文輸入法 (IME) 組字狀態
+            if (isComposing || e.isComposing || e.key === 'Process') {
+                setImeWarning(true);
+                return;
+            }
+
             if (e.key === 'Backspace') {
-                updateWordDisplay(answerInput.value);
-                // Backspace 也可以視為修正，重置錯誤計數以免誤判
+                e.preventDefault();
+                if (gameState.typedLength > 0) {
+                    gameState.typedLength--;
+                    answerInput.value = gameState.currentVocab.en.slice(0, gameState.typedLength);
+                    updateWordDisplay(answerInput.value);
+                }
                 gameState.consecutiveMistakes = 0;
+                return;
+            }
+
+            // 手機虛擬鍵盤常回傳 Unidentified，交由下方 input 事件接手處理
+            if (e.key === 'Unidentified') return;
+
+            if (e.key.length > 1 || e.ctrlKey || e.metaKey || e.altKey) return; 
+            e.preventDefault();
+            processTypedChar(e.key);
+        });
+
+        answerInput.addEventListener('input', (e) => {
+            if (!gameState.isRunning || !gameState.currentVocab) {
+                answerInput.value = "";
+                return;
+            }
+            if (isComposing || e.isComposing) return;
+
+            const targetWord = gameState.currentVocab.en;
+            const currentVal = answerInput.value;
+
+            if (currentVal.length < gameState.typedLength) {
+                gameState.typedLength = currentVal.length;
+                answerInput.value = targetWord.slice(0, gameState.typedLength);
+                updateWordDisplay(answerInput.value);
+                gameState.consecutiveMistakes = 0;
+                return;
+            }
+
+            const added = currentVal.slice(gameState.typedLength);
+            if (!added) return;
+
+            // 若輸入非 ASCII 字元 (多半為中文輸入法送出)，提醒切換英數並清回已確認前綴
+            if (/[^\x20-\x7E]/.test(added)) {
+                setImeWarning(true);
+                answerInput.value = targetWord.slice(0, gameState.typedLength);
+                return;
+            }
+
+            for (const ch of added) {
+                if (!gameState.isRunning || !gameState.currentVocab || gameState.currentVocab.en !== targetWord) break;
+                if (['1', '2', '3', '4'].includes(ch)) {
+                    tryBuyUnit(parseInt(ch, 10) - 1);
+                    answerInput.value = targetWord.slice(0, gameState.typedLength);
+                    continue;
+                }
+                processTypedChar(ch);
             }
         });
         
         answerInput.addEventListener('paste', (e) => e.preventDefault());
+
+        // 點擊控制面板或畫布區域時自動聚焦輸入框 (不影響按鈕/選單操作)
+        document.getElementById('control-panel').addEventListener('click', (e) => {
+            if (gameState.isRunning && e.target.id !== 'speaker-btn') {
+                answerInput.focus();
+            }
+        });
+        document.getElementById('canvas-container').addEventListener('click', () => {
+            if (gameState.isRunning) answerInput.focus();
+        });
 
         // 新增：觸發天譴閃電
         function triggerLightningStrike() {
@@ -1508,7 +1771,9 @@
         }
 
         function successWord() {
-            window.speechSynthesis.cancel();
+            if ('speechSynthesis' in window) {
+                try { window.speechSynthesis.cancel(); } catch (e) {}
+            }
             const timeTaken = Date.now() - gameState.wordStartTime;
             if (timeTaken > 10000) {
                 gameState.deck.push(gameState.currentVocabIndex);
@@ -1532,8 +1797,10 @@
         function updateHUD() {
             document.getElementById('money-display').textContent = `$${gameState.money} / ${gameState.maxMoney}`;
             document.getElementById('score-display').textContent = `Score: ${gameState.score}`;
-            document.getElementById('player-hp').style.width = (gameState.playerHp / gameState.maxPlayerHp * 100) + '%';
-            document.getElementById('enemy-hp').style.width = (gameState.enemyHp / gameState.maxEnemyHp * 100) + '%';
+            const playerPct = Math.max(0, Math.min(100, (gameState.playerHp / gameState.maxPlayerHp) * 100));
+            const enemyPct = Math.max(0, Math.min(100, (gameState.enemyHp / gameState.maxEnemyHp) * 100));
+            document.getElementById('player-hp').style.width = playerPct + '%';
+            document.getElementById('enemy-hp').style.width = enemyPct + '%';
 
             const now = Date.now();
             UNIT_TYPES.forEach((u, i) => {
@@ -1547,55 +1814,49 @@
             });
         }
 
-        function update(dt) {
-            if (gameState.playerHp <= 0) return endGame(false);
-            if (gameState.enemyHp <= 0) return endGame(true);
+        function update(frameScale) {
+            if (gameState.playerHp <= 0) {
+                gameState.playerHp = 0;
+                updateHUD();
+                return endGame(false);
+            }
+            if (gameState.enemyHp <= 0) {
+                gameState.enemyHp = 0;
+                updateHUD();
+                return endGame(true);
+            }
 
             // 更新閃電特效計時器
             if (gameState.lightningTimer > 0) {
-                gameState.lightningTimer--;
+                gameState.lightningTimer = Math.max(0, gameState.lightningTimer - frameScale);
             }
 
-            if (gameState.currentVocab && gameState.deck.length >= 0 && Date.now() > gameState.nextSpeakTime) {
-                if (gameState.mode === 'BOSS' && gameState.deck.length === 0) {} 
-                else {
-                   speakWord(gameState.currentVocab.en);
-                   gameState.nextSpeakTime = Date.now() + 4000;
-                }
+            if (gameState.currentVocab && Date.now() > gameState.nextSpeakTime) {
+                speakWord(gameState.currentVocab.en);
+                gameState.nextSpeakTime = Date.now() + 4000;
             }
 
-            // 修正：將更新(Update)與移除(Remove)分離，避免迴圈索引錯誤導致的「幽靈貓」Bug
-            
-            // 1. 先更新所有單位行為
-            gameState.cats.forEach(cat => cat.update(dt, gameState.enemies));
-            gameState.enemies.forEach(enemy => enemy.update(dt, gameState.cats));
+            // 1. 先更新所有單位行為 (以 60FPS 為基準縮放 dt，確保各更新率螢幕速度一致)
+            gameState.cats.forEach(cat => cat.update(frameScale, gameState.enemies));
+            gameState.enemies.forEach(enemy => enemy.update(frameScale, gameState.cats));
 
-            // 2. 統一清理死亡單位 (使用 filter 產生新陣列)
-            // 清理貓咪
+            // 2. 統一清理死亡單位
             gameState.cats = gameState.cats.filter(cat => cat.hp > 0);
 
-            // 清理敵人 (反向迴圈處理，因為要加分和特效，filter 較不直觀)
             for (let i = gameState.enemies.length - 1; i >= 0; i--) {
                 if (gameState.enemies[i].hp <= 0) {
                     const enemy = gameState.enemies[i];
                     gameState.enemies.splice(i, 1);
                     gameState.score += 50;
-                    spawnParticle(enemy.x, enemy.y - 20, 'score', 0, "+50");
+                    spawnParticle(enemy.x + enemy.width / 2, GROUND_Y - enemy.height - 20, 'score', 0, "+50");
                 }
             }
 
-            gameState.particles.forEach((p, i) => {
-                p.update();
-                if (p.life <= 0) gameState.particles.splice(i, 1);
-            });
+            // 3. 更新並安全清理粒子 (避免 forEach 中 splice 漏掉下一個元素)
+            gameState.particles.forEach(p => p.update(frameScale));
+            gameState.particles = gameState.particles.filter(p => p.life > 0);
 
-            // 移除：if (Math.random() < 0.02) addMoney(1); 
-            // 嚴格執行「只能靠打字賺錢」，不再隨機自動增加金錢
-            
             updateHUD();
-            if (document.activeElement !== answerInput) {
-                answerInput.focus();
-            }
         }
 
         // --- Drawing Castles ---
@@ -1766,21 +2027,22 @@
 
         function loop(timestamp) {
             if (!gameState.isRunning) return;
-            const dt = timestamp - lastTime;
+            const dt = Math.min(Math.max(timestamp - lastTime, 0), 100);
             lastTime = timestamp;
-            update(dt);
+            const frameScale = dt / (1000 / 60);
+            update(frameScale);
+            if (!gameState.isRunning) return;
             draw();
             animationId = requestAnimationFrame(loop);
         }
 
-        // ... (剩餘的 Controls 和 GAS Leaderboard 代碼保持不變) ...
-        
         function startGame(level) {
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('game-over-screen').style.display = 'none';
             document.getElementById('level-complete-screen').style.display = 'none';
             document.getElementById('leaderboard-screen').style.display = 'none';
             
+            if (animationId) cancelAnimationFrame(animationId);
             gameState.isRunning = true;
             resizeCanvas();
             initGame(level);
@@ -1794,15 +2056,27 @@
 
         function endGame(victory) {
             gameState.isRunning = false;
-            window.speechSynthesis.cancel(); 
-            cancelAnimationFrame(animationId);
+            if (spawnTimeoutId) {
+                clearTimeout(spawnTimeoutId);
+                spawnTimeoutId = null;
+            }
+            clearUnitCooldownVisuals();
+            if ('speechSynthesis' in window) {
+                try { window.speechSynthesis.cancel(); } catch (e) {}
+            }
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+
+            if (victory) {
+                gameState.score += 500;
+            }
             
             if (victory && (gameState.mode !== 'BOSS' && gameState.level < MAX_LEVELS)) {
                 // Next Stage
                 const screen = document.getElementById('level-complete-screen');
                 screen.style.display = 'flex';
-                // Bonus score for clearing level
-                gameState.score += 500;
             } else {
                 // Game Over or Full Victory
                 const screen = document.getElementById('game-over-screen');
@@ -1821,7 +2095,7 @@
                 const btn = document.getElementById('submit-score-btn');
                 btn.classList.remove('loading');
                 btn.disabled = false;
-                btn.innerText = "登記並回主選單";
+                btn.innerText = "登記並看英雄榜";
             }
         }
         
@@ -1912,7 +2186,23 @@
                     if (index === 0) { rankClass = "rank-1"; medal = "🥇 "; } 
                     else if (index === 1) { rankClass = "rank-2"; medal = "🥈 "; } 
                     else if (index === 2) { rankClass = "rank-3"; medal = "🥉 "; }
-                    tr.innerHTML = `<td class="${rankClass}">${medal}${index + 1}</td><td class="${rankClass}">${r.name}</td><td class="${rankClass}">${r.score}</td><td>${formatDateDisplay(r.date)}</td>`;
+
+                    const tdRank = document.createElement('td');
+                    if (rankClass) tdRank.className = rankClass;
+                    tdRank.textContent = `${medal}${index + 1}`;
+
+                    const tdName = document.createElement('td');
+                    if (rankClass) tdName.className = rankClass;
+                    tdName.textContent = r.name ?? "無名英雄";
+
+                    const tdScore = document.createElement('td');
+                    if (rankClass) tdScore.className = rankClass;
+                    tdScore.textContent = r.score ?? 0;
+
+                    const tdDate = document.createElement('td');
+                    tdDate.textContent = formatDateDisplay(r.date);
+
+                    tr.append(tdRank, tdName, tdScore, tdDate);
                     tbody.appendChild(tr);
                 });
             } catch (error) {
@@ -1940,39 +2230,48 @@
         }
 
         window.addEventListener('resize', resizeCanvas);
+
+        document.getElementById('player-name-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const btn = document.getElementById('submit-score-btn');
+                if (btn && !btn.disabled) submitScore();
+            }
+        });
         
         // 隱藏指令緩衝區
         let cheatCodeBuffer = "";
         const CHEAT_CODE = "2u/ 2u/ cl3gj94"; // 對應注音：丁丁好帥
 
         window.addEventListener('keydown', (e) => {
-            if (e.target.id === 'player-name-input') return;
+            if (!gameState.isRunning) return;
+            if (e.target && e.target.id === 'player-name-input') return;
 
             // --- 隱藏指令偵測邏輯 ---
-            if (e.key.length === 1) { // 只偵測單字元按鍵 (包含空白鍵)
+            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) { // 只偵測單字元按鍵 (包含空白鍵)
                 cheatCodeBuffer += e.key;
-                // 保持緩衝區長度與密技相同
                 if (cheatCodeBuffer.length > CHEAT_CODE.length) {
                     cheatCodeBuffer = cheatCodeBuffer.slice(-CHEAT_CODE.length);
                 }
-                // 檢查是否吻合
                 if (cheatCodeBuffer === CHEAT_CODE) {
                     gameState.money = 999999;
                     gameState.maxMoney = 999999;
-                    gameState.playerHp = gameState.maxPlayerHp; // 順便補血，抵銷輸入時可能的閃電傷害
+                    gameState.playerHp = gameState.maxPlayerHp; // 補血抵銷輸入時可能的傷害
+                    gameState.consecutiveMistakes = 0;
                     updateHUD();
                     spawnParticle(GAME_WIDTH/2, GAME_HEIGHT/2, 'text', 0, "💰 CHEAT ACTIVATED! 💰");
                     cheatCodeBuffer = ""; // 重置防止重複觸發
+                    if (['1', '2', '3', '4'].includes(e.key)) e.preventDefault();
+                    return;
                 }
             }
             // -----------------------
 
-            if (['1', '2', '3', '4'].includes(e.key)) {
+            if (['1', '2', '3', '4'].includes(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
                 e.preventDefault(); 
-                const idx = parseInt(e.key) - 1;
+                const idx = parseInt(e.key, 10) - 1;
                 tryBuyUnit(idx);
             }
-        });
+        }, true);
         
         setTimeout(resizeCanvas, 100);
 
