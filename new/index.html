@@ -553,7 +553,14 @@
             
             <div class="text-xs text-yellow-500 font-bold tracking-[0.3em] uppercase mb-1">臺中市清水區西寧國小 • 電腦課鍵盤修煉證書</div>
             <h1 id="result-title" class="text-4xl md:text-5xl font-black pixel-font text-yellow-400 mb-3 drop-shadow-md">VICTORY!</h1>
-            <p id="result-subtitle" class="text-sm text-gray-300 mb-6">成功守護西寧校園博學、群英與耕心樓！</p>
+            <p id="result-subtitle" class="text-sm text-gray-300 mb-4">成功守護西寧校園博學、群英與耕心樓！</p>
+
+            <!-- Student Info & Progress Badge on Certificate -->
+            <div class="flex flex-wrap items-center justify-center gap-2 mb-4 text-xs">
+                <span id="cert-student-info" class="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-cyan-300 font-bold">尚未填寫班級姓名</span>
+                <span id="cert-progress-badge" class="px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/40 text-blue-300 font-bold">進度：第 1 關</span>
+                <span id="cert-cheat-badge" class="hidden px-3 py-1 rounded-full bg-red-600/30 border border-red-500 text-red-300 font-bold">⚠️ 測試模式（不計入成績）</span>
+            </div>
             
             <!-- Rank Badge -->
             <div class="inline-flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/40 px-6 py-2 rounded-full mb-6">
@@ -580,7 +587,7 @@
                 </div>
                 <div class="bg-white/5 p-4 rounded-xl border border-white/10 text-center">
                     <div class="text-xs text-gray-400 mb-1">🏆 最終總分</div>
-                    <div id="stat-score" class="text-2xl font-black pixel-font text-purple-400">9500</div>
+                    <div id="stat-score" class="text-lg md:text-xl font-black pixel-font text-purple-400">9500</div>
                     <div class="text-[10px] text-gray-500">Score</div>
                 </div>
             </div>
@@ -603,12 +610,37 @@
 
             <!-- Submit to Online Leaderboard (Hidden on Print) -->
             <div class="bg-yellow-500/10 border border-yellow-500/40 rounded-xl p-4 mb-5 no-print">
-                <div class="text-xs text-yellow-300 font-bold mb-2">🏆 登錄西寧校園守護者英雄榜（寫入雲端試算表）</div>
-                <div class="flex flex-col sm:flex-row gap-2 justify-center items-center">
-                    <input type="text" id="player-name-input" maxlength="12" placeholder="輸入班級姓名 (如 50101王小明)"
-                        class="px-3 py-2 rounded bg-gray-900 border border-yellow-500/50 text-white text-sm w-full sm:w-64 focus:outline-none focus:border-yellow-400">
-                    <button id="submit-score-btn" onclick="submitScore()" class="rpg-btn btn-infinite px-5 py-2 text-white font-bold rounded pixel-font text-xs whitespace-nowrap">
-                        📤 上傳戰績
+                <div class="text-xs text-yellow-300 font-bold mb-2.5">🏆 登錄西寧校園守護者英雄榜（寫入雲端試算表）</div>
+                <div class="grid grid-cols-2 sm:grid-cols-12 gap-2 justify-center items-center">
+                    <select id="player-grade-select" onchange="onProfileInputChange()"
+                        class="sm:col-span-3 px-2.5 py-2 rounded bg-gray-900 border border-yellow-500/50 text-white text-xs sm:text-sm focus:outline-none focus:border-yellow-400">
+                        <option value="" disabled selected>選擇年級</option>
+                        <option value="3">3 年級</option>
+                        <option value="4">4 年級</option>
+                        <option value="5">5 年級</option>
+                        <option value="6">6 年級</option>
+                        <option value="1">1 年級</option>
+                        <option value="2">2 年級</option>
+                        <option value="guest">教師 / 訪客</option>
+                    </select>
+                    <select id="player-class-select" onchange="onProfileInputChange()"
+                        class="sm:col-span-2 px-2.5 py-2 rounded bg-gray-900 border border-yellow-500/50 text-white text-xs sm:text-sm focus:outline-none focus:border-yellow-400">
+                        <option value="" disabled selected>班級</option>
+                        <option value="1">1 班</option>
+                        <option value="2">2 班</option>
+                        <option value="3">3 班</option>
+                        <option value="4">4 班</option>
+                        <option value="5">5 班</option>
+                        <option value="6">6 班</option>
+                        <option value="7">7 班</option>
+                        <option value="8">8 班</option>
+                    </select>
+                    <input type="number" id="player-seat-input" min="1" max="35" placeholder="座號" oninput="onProfileInputChange()"
+                        class="sm:col-span-2 px-2.5 py-2 rounded bg-gray-900 border border-yellow-500/50 text-white text-xs sm:text-sm focus:outline-none focus:border-yellow-400">
+                    <input type="text" id="player-name-input" maxlength="10" placeholder="姓名 (如 王小明)" oninput="onProfileInputChange()"
+                        class="col-span-2 sm:col-span-3 px-3 py-2 rounded bg-gray-900 border border-yellow-500/50 text-white text-xs sm:text-sm focus:outline-none focus:border-yellow-400">
+                    <button id="submit-score-btn" onclick="submitScore()" class="col-span-2 sm:col-span-2 rpg-btn btn-infinite px-3 py-2 text-white font-bold rounded pixel-font text-xs whitespace-nowrap">
+                        📤 上傳
                     </button>
                 </div>
                 <div id="submit-status" class="text-[11px] text-gray-300 mt-2 hidden"></div>
@@ -632,12 +664,12 @@
 
     <!-- UI Overlay: Online Leaderboard Modal -->
     <div id="leaderboard-screen" class="ui-layer bg-black/95 z-[70] hidden pointer-events-auto overflow-y-auto p-4 backdrop-blur-lg">
-        <div class="bg-gradient-to-b from-gray-900 to-black p-6 md:p-8 rounded-2xl border-4 border-yellow-500/60 max-w-4xl w-full text-center shadow-[0_0_50px_rgba(234,179,8,0.3)] my-auto">
+        <div class="bg-gradient-to-b from-gray-900 to-black p-6 md:p-8 rounded-2xl border-4 border-yellow-500/60 max-w-5xl w-full text-center shadow-[0_0_50px_rgba(234,179,8,0.3)] my-auto">
             <div class="text-xs text-yellow-500 font-bold tracking-[0.3em] uppercase mb-1">Xining Campus Guardian • Hall of Fame</div>
             <h2 class="text-3xl md:text-4xl font-black pixel-font text-yellow-400 mb-4 drop-shadow-md">🏆 西寧校園守護者英雄榜 🏆</h2>
 
-            <!-- Mode Filter Tabs -->
-            <div class="flex flex-wrap justify-center gap-2 mb-4">
+            <!-- Mode & Grade Filter Tabs -->
+            <div class="flex flex-wrap justify-center items-center gap-2 mb-4">
                 <button id="lb-tab-all" onclick="switchLeaderboardMode('all')" class="px-4 py-1.5 rounded-full text-xs font-bold border border-yellow-400 bg-yellow-500 text-black cursor-pointer">
                     🌟 全部戰績
                 </button>
@@ -647,6 +679,17 @@
                 <button id="lb-tab-infinite" onclick="switchLeaderboardMode('infinite')" class="px-4 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-gray-800 text-gray-300 hover:border-amber-400 cursor-pointer">
                     🔥 無限挑戰
                 </button>
+                <select id="lb-grade-filter" onchange="switchLeaderboardGrade(this.value)"
+                    class="px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-gray-800 text-yellow-300 focus:outline-none focus:border-yellow-400 cursor-pointer">
+                    <option value="all">全部年級</option>
+                    <option value="3">3 年級</option>
+                    <option value="4">4 年級</option>
+                    <option value="5">5 年級</option>
+                    <option value="6">6 年級</option>
+                    <option value="1">1 年級</option>
+                    <option value="2">2 年級</option>
+                    <option value="guest">教師 / 訪客</option>
+                </select>
                 <button onclick="loadLeaderboardData()" class="px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-gray-800 text-cyan-300 hover:border-cyan-400 cursor-pointer">
                     🔄 重新整理
                 </button>
@@ -659,11 +702,13 @@
                     <thead class="sticky top-0 bg-gray-900 text-yellow-400 border-b border-yellow-500/30 whitespace-nowrap">
                         <tr>
                             <th class="p-3 text-center">排名</th>
-                            <th class="p-3">英雄</th>
+                            <th class="p-3">班級座號</th>
+                            <th class="p-3">姓名</th>
                             <th class="p-3 text-center">模式</th>
                             <th class="p-3 text-right">總分</th>
                             <th class="p-3 text-right">WPM</th>
                             <th class="p-3 text-right">準確率</th>
+                            <th class="p-3 text-center">關卡進度</th>
                             <th class="p-3">稱號</th>
                             <th class="p-3 text-center">日期</th>
                         </tr>
@@ -686,6 +731,7 @@
         const GAME_VERSION = "V2.1 PRO";
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmHfUWmFdiZK1GO5M48KC9vbuaj6khsIQNwzY6Ny0XIZcOUyr68vkUPHTv4nq2oE2S/exec';
         const LOCAL_RANK_KEY = 'xining_guardian_ranks';
+        const PROFILE_KEY = 'xining_guardian_profile';
         document.getElementById('version-display').innerText = GAME_VERSION;
 
         // --- Key Row Color System ---
@@ -1097,6 +1143,7 @@
         let stageClearTimer = null;
         let upgradeMenuTimer = null;
         let currentLeaderboardMode = 'all';
+        let currentLeaderboardGrade = 'all';
         let hasSubmittedScore = false;
         let lastReportStats = null;
         
@@ -1147,7 +1194,8 @@
             // Cheats
             autoPlay: false,
             autoPlayTimer: 0,
-            godMode: false
+            godMode: false,
+            usedCheat: false
         };
 
         // --- Init Window ---
@@ -1191,16 +1239,20 @@
             }
         }
 
+        function isFormControlTarget(el) {
+            return Boolean(el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT'));
+        }
+
         // --- IME Handlers ---
         function onCompositionStart(e) {
             if (gameState.status !== 'PLAYING') return;
-            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+            if (isFormControlTarget(e.target)) return;
             isComposing = true;
             showImeModal(true);
         }
         function onCompositionUpdate(e) {
             if (gameState.status !== 'PLAYING') return;
-            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+            if (isFormControlTarget(e.target)) return;
             isComposing = true;
             showImeModal(true);
         }
@@ -1307,7 +1359,8 @@
                 missedKeysCount: {},
                 autoPlay: false,
                 autoPlayTimer: 0,
-                godMode: false
+                godMode: false,
+                usedCheat: false
             };
             document.getElementById('auto-mode-indicator').style.display = 'none';
             document.getElementById('god-mode-indicator').style.display = 'none';
@@ -1661,7 +1714,7 @@
         }
 
         function handleInput(e) {
-            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+            if (isFormControlTarget(e.target)) return;
 
             if (e.getModifierState) {
                 const capsOn = e.getModifierState('CapsLock');
@@ -1912,6 +1965,7 @@
 
         function activateAutoCheat() {
             gameState.autoPlay = !gameState.autoPlay;
+            gameState.usedCheat = true;
             playSound('cheat');
             createFloatingText(canvas.width/2, canvas.height/2, gameState.autoPlay ? "AUTO PILOT ON" : "AUTO PILOT OFF", "#00ff00", 40);
             document.getElementById('auto-mode-indicator').style.display = gameState.autoPlay ? 'block' : 'none';
@@ -1919,6 +1973,7 @@
 
         function activateGodCheat() {
             gameState.godMode = !gameState.godMode;
+            gameState.usedCheat = true;
             playSound('cheat');
             createFloatingText(canvas.width/2, canvas.height/2, gameState.godMode ? "GOD MODE ON" : "GOD MODE OFF", "#ffd700", 40);
             document.getElementById('god-mode-indicator').style.display = gameState.godMode ? 'block' : 'none';
@@ -2375,6 +2430,10 @@
                 document.getElementById('stat-top-mistakes').className = 'font-mono text-yellow-300 font-bold text-sm';
             }
 
+            const stageProgress = gameState.mode === 'infinite'
+                ? `無限波次 ${gameState.bossWaveCount + 1}`
+                : (isVictory ? '全破 (4/4)' : `第 ${gameState.currentStageIdx + 1} 關陣亡`);
+
             // Prepare leaderboard submission state
             lastReportStats = {
                 mode: gameState.mode || 'story',
@@ -2382,24 +2441,63 @@
                 wpm: wpm,
                 accuracy: accuracy,
                 maxCombo: gameState.maxCombo,
-                rank: rank
+                stageProgress: stageProgress,
+                durationSec: durationSec,
+                rank: rank,
+                usedCheat: Boolean(gameState.usedCheat)
             };
             hasSubmittedScore = false;
+
+            const progBadge = document.getElementById('cert-progress-badge');
+            if (progBadge) progBadge.innerText = `進度：${stageProgress}`;
+            const cheatBadge = document.getElementById('cert-cheat-badge');
+            if (cheatBadge) cheatBadge.classList.toggle('hidden', !gameState.usedCheat);
+
+            const gradeEl = document.getElementById('player-grade-select');
+            const classEl = document.getElementById('player-class-select');
+            const seatEl = document.getElementById('player-seat-input');
             const nameInput = document.getElementById('player-name-input');
             const submitBtn = document.getElementById('submit-score-btn');
             const submitStatus = document.getElementById('submit-status');
-            if (nameInput) {
-                nameInput.value = localStorage.getItem('xining_guardian_last_name') || '';
-                nameInput.disabled = false;
-            }
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.innerText = '📤 上傳戰績';
-                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-            if (submitStatus) {
-                submitStatus.classList.add('hidden');
-                submitStatus.innerText = '';
+
+            let savedProfile = {};
+            try {
+                savedProfile = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}') || {};
+            } catch (e) {}
+
+            if (gradeEl) gradeEl.value = savedProfile.grade || '';
+            if (classEl) classEl.value = savedProfile.classNo || '';
+            if (seatEl) seatEl.value = savedProfile.seatNo || '';
+            if (nameInput) nameInput.value = savedProfile.name || '';
+            onProfileInputChange();
+
+            if (gameState.usedCheat) {
+                if (gradeEl) gradeEl.disabled = true;
+                if (classEl) classEl.disabled = true;
+                if (seatEl) seatEl.disabled = true;
+                if (nameInput) nameInput.disabled = true;
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = '🚫 已鎖定';
+                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                if (submitStatus) {
+                    submitStatus.classList.remove('hidden');
+                    submitStatus.innerText = '⚠️ 本局曾啟用測試密技（AUTO / GOD），成績不計入正式英雄榜！';
+                    submitStatus.className = 'text-[11px] text-red-400 mt-2 font-bold';
+                }
+            } else {
+                if (gradeEl) gradeEl.disabled = false;
+                if (nameInput) nameInput.disabled = false;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = '📤 上傳';
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                if (submitStatus) {
+                    submitStatus.classList.add('hidden');
+                    submitStatus.innerText = '';
+                }
             }
 
             const container = document.getElementById('report-card-container');
@@ -2407,12 +2505,68 @@
             container.classList.add('flex');
         }
 
+        function onProfileInputChange() {
+            const gradeEl = document.getElementById('player-grade-select');
+            const classEl = document.getElementById('player-class-select');
+            const seatEl = document.getElementById('player-seat-input');
+            const nameEl = document.getElementById('player-name-input');
+            const certInfo = document.getElementById('cert-student-info');
+            const submitStatus = document.getElementById('submit-status');
+
+            if (submitStatus && !(lastReportStats && lastReportStats.usedCheat) && !hasSubmittedScore) {
+                submitStatus.classList.add('hidden');
+                submitStatus.innerText = '';
+            }
+
+            const grade = gradeEl ? gradeEl.value : '';
+            const isGuest = grade === 'guest';
+
+            if (classEl) {
+                classEl.disabled = isGuest || Boolean(lastReportStats && lastReportStats.usedCheat) || hasSubmittedScore;
+                if (isGuest) classEl.value = '';
+            }
+            if (seatEl) {
+                seatEl.disabled = isGuest || Boolean(lastReportStats && lastReportStats.usedCheat) || hasSubmittedScore;
+                if (isGuest) seatEl.value = '';
+            }
+
+            const classNo = classEl ? classEl.value : '';
+            const rawSeat = seatEl ? String(seatEl.value).replace(/\D/g, '') : '';
+            const seatFormatted = rawSeat ? rawSeat.padStart(2, '0').slice(-2) : '';
+            const name = nameEl ? nameEl.value.trim() : '';
+
+            if (certInfo) {
+                if (isGuest) {
+                    certInfo.innerText = name ? `教師 / 訪客 • ${name}` : '教師 / 訪客';
+                } else if (grade && classNo && seatFormatted && name) {
+                    certInfo.innerText = `${grade}年${classNo}班 ${seatFormatted}號 • ${name}`;
+                } else if (grade && classNo) {
+                    certInfo.innerText = `${grade}年${classNo}班 ${seatFormatted ? seatFormatted + '號 ' : ''}${name || ''}`.trim();
+                } else if (name) {
+                    certInfo.innerText = name;
+                } else {
+                    certInfo.innerText = '尚未填寫班級姓名';
+                }
+            }
+        }
+
         // --- Online Leaderboard (Google Sheets GAS + localStorage fallback) ---
-        function getLocalRanks(mode = 'all') {
+        function getLocalRanks(mode = 'all', grade = 'all') {
             try {
                 const list = JSON.parse(localStorage.getItem(LOCAL_RANK_KEY) || '[]');
                 if (!Array.isArray(list)) return [];
-                const filtered = mode === 'all' ? list : list.filter(r => r.mode === mode);
+                const filtered = list.filter(r => {
+                    if (mode !== 'all' && r.mode !== mode) return false;
+                    if (grade !== 'all') {
+                        const gc = String(r.gradeClass || '');
+                        if (grade === 'guest') {
+                            if (/^\d年/.test(gc)) return false;
+                        } else if (!gc.startsWith(`${grade}年`)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
                 return filtered.sort((a, b) => (b.score - a.score) || (b.wpm - a.wpm)).slice(0, 30);
             } catch (e) {
                 return [];
@@ -2425,18 +2579,18 @@
                 const safeList = Array.isArray(list) ? list : [];
                 safeList.push(entry);
                 safeList.sort((a, b) => (b.score - a.score) || (b.wpm - a.wpm));
-                if (safeList.length > 30) safeList.length = 30;
+                if (safeList.length > 50) safeList.length = 50;
                 localStorage.setItem(LOCAL_RANK_KEY, JSON.stringify(safeList));
             } catch (e) {}
         }
 
-        async function fetchLeaderboard(mode = 'all') {
+        async function fetchLeaderboard(mode = 'all', grade = 'all') {
             if (!GOOGLE_SCRIPT_URL) {
-                return { ranks: getLocalRanks(mode), fromCloud: false };
+                return { ranks: getLocalRanks(mode, grade), fromCloud: false };
             }
             try {
                 const sep = GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?';
-                const response = await fetch(`${GOOGLE_SCRIPT_URL}${sep}mode=${encodeURIComponent(mode)}`);
+                const response = await fetch(`${GOOGLE_SCRIPT_URL}${sep}mode=${encodeURIComponent(mode)}&grade=${encodeURIComponent(grade)}`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
                 const ranks = Array.isArray(data) ? data : (Array.isArray(data.ranks) ? data.ranks : null);
@@ -2444,7 +2598,7 @@
                 return { ranks, fromCloud: true };
             } catch (e) {
                 console.warn('Google Sheet 連線失敗，切換至本機排行榜模式', e);
-                return { ranks: getLocalRanks(mode), fromCloud: false };
+                return { ranks: getLocalRanks(mode, grade), fromCloud: false };
             }
         }
 
@@ -2469,15 +2623,65 @@
 
         async function submitScore() {
             if (hasSubmittedScore || !lastReportStats) return;
+            const gradeEl = document.getElementById('player-grade-select');
+            const classEl = document.getElementById('player-class-select');
+            const seatEl = document.getElementById('player-seat-input');
             const nameInput = document.getElementById('player-name-input');
             const submitBtn = document.getElementById('submit-score-btn');
             const submitStatus = document.getElementById('submit-status');
 
-            const rawName = nameInput ? nameInput.value.trim() : '';
-            const name = rawName || '無名勇者';
-            if (rawName) {
-                try { localStorage.setItem('xining_guardian_last_name', rawName); } catch (e) {}
+            if (lastReportStats.usedCheat) {
+                if (submitStatus) {
+                    submitStatus.classList.remove('hidden');
+                    submitStatus.innerText = '⚠️ 本局曾啟用測試密技，無法上傳正式英雄榜！';
+                    submitStatus.className = 'text-[11px] text-red-400 mt-2 font-bold';
+                }
+                return;
             }
+
+            const grade = gradeEl ? gradeEl.value : '';
+            const classNo = classEl ? classEl.value : '';
+            const rawSeat = seatEl ? seatEl.value.trim() : '';
+            const seatNum = parseInt(rawSeat, 10);
+            const name = nameInput ? nameInput.value.trim() : '';
+
+            if (!grade) {
+                if (submitStatus) {
+                    submitStatus.classList.remove('hidden');
+                    submitStatus.innerText = '⚠️ 請先選擇「年級」（非校內學生請選「教師 / 訪客」）！';
+                    submitStatus.className = 'text-[11px] text-amber-300 mt-2 font-bold';
+                }
+                if (gradeEl) gradeEl.focus();
+                return;
+            }
+
+            if (grade !== 'guest' && (!classNo || isNaN(seatNum) || seatNum < 1 || seatNum > 35)) {
+                if (submitStatus) {
+                    submitStatus.classList.remove('hidden');
+                    submitStatus.innerText = '⚠️ 請完整選擇「班級」並填寫正確「座號 (1~35)」！';
+                    submitStatus.className = 'text-[11px] text-amber-300 mt-2 font-bold';
+                }
+                if (!classNo && classEl) classEl.focus();
+                else if (seatEl) seatEl.focus();
+                return;
+            }
+
+            if (!name) {
+                if (submitStatus) {
+                    submitStatus.classList.remove('hidden');
+                    submitStatus.innerText = '⚠️ 請輸入「姓名」再上傳戰績！';
+                    submitStatus.className = 'text-[11px] text-amber-300 mt-2 font-bold';
+                }
+                if (nameInput) nameInput.focus();
+                return;
+            }
+
+            const gradeClass = grade === 'guest' ? '訪客' : `${grade}年${classNo}班`;
+            const seatNo = grade === 'guest' ? '-' : String(seatNum).padStart(2, '0');
+
+            try {
+                localStorage.setItem(PROFILE_KEY, JSON.stringify({ grade, classNo, seatNo: grade === 'guest' ? '' : String(seatNum), name }));
+            } catch (e) {}
 
             const date = new Date().toLocaleString('zh-TW', {
                 timeZone: 'Asia/Taipei',
@@ -2487,17 +2691,25 @@
             });
 
             const entry = {
+                gradeClass: gradeClass,
+                seatNo: seatNo,
                 name: name,
                 mode: lastReportStats.mode,
                 score: lastReportStats.score,
                 wpm: lastReportStats.wpm,
                 accuracy: lastReportStats.accuracy,
                 maxCombo: lastReportStats.maxCombo,
+                stageProgress: lastReportStats.stageProgress,
+                durationSec: lastReportStats.durationSec,
                 rank: lastReportStats.rank,
+                usedCheat: false,
                 date: date
             };
 
             hasSubmittedScore = true;
+            if (gradeEl) gradeEl.disabled = true;
+            if (classEl) classEl.disabled = true;
+            if (seatEl) seatEl.disabled = true;
             if (nameInput) nameInput.disabled = true;
             if (submitBtn) {
                 submitBtn.disabled = true;
@@ -2511,14 +2723,14 @@
             if (submitStatus) {
                 submitStatus.classList.remove('hidden');
                 submitStatus.innerText = cloudOk
-                    ? '✅ 戰績已成功寫入《西寧校園守護者英打英雄榜》雲端試算表！'
-                    : '⚠️ 已暫存於本機紀錄（雲端服務尚未授權或目前離線）。';
+                    ? '✅ 戰績已成功寫入《西寧校園守護者英打英雄榜》與班級成績彙整！'
+                    : '⚠️ 已暫存於本機紀錄（雲端服務目前離線）。';
                 submitStatus.className = cloudOk
                     ? 'text-[11px] text-green-400 mt-2 font-bold'
                     : 'text-[11px] text-amber-300 mt-2 font-bold';
             }
 
-            openLeaderboard(entry.mode);
+            openLeaderboard(entry.mode, grade);
         }
 
         function updateLeaderboardTabStyles() {
@@ -2531,6 +2743,8 @@
                     btn.className = 'px-4 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-gray-800 text-gray-300 hover:border-yellow-400 cursor-pointer';
                 }
             });
+            const gradeSel = document.getElementById('lb-grade-filter');
+            if (gradeSel) gradeSel.value = currentLeaderboardGrade;
         }
 
         function switchLeaderboardMode(mode) {
@@ -2539,8 +2753,15 @@
             loadLeaderboardData();
         }
 
-        function openLeaderboard(mode = 'all') {
+        function switchLeaderboardGrade(grade) {
+            currentLeaderboardGrade = grade || 'all';
+            updateLeaderboardTabStyles();
+            loadLeaderboardData();
+        }
+
+        function openLeaderboard(mode = 'all', grade = 'all') {
             currentLeaderboardMode = ['story', 'infinite'].includes(mode) ? mode : 'all';
+            currentLeaderboardGrade = ['1', '2', '3', '4', '5', '6', 'guest'].includes(grade) ? grade : 'all';
             updateLeaderboardTabStyles();
             const screen = document.getElementById('leaderboard-screen');
             screen.classList.remove('hidden');
@@ -2559,22 +2780,22 @@
             const note = document.getElementById('leaderboard-source-note');
             if (!tbody) return;
 
-            tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-gray-400">正在載入英雄榜...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" class="p-6 text-center text-gray-400">正在載入英雄榜...</td></tr>';
             if (note) note.innerText = '';
 
-            const { ranks, fromCloud } = await fetchLeaderboard(currentLeaderboardMode);
+            const { ranks, fromCloud } = await fetchLeaderboard(currentLeaderboardMode, currentLeaderboardGrade);
             tbody.innerHTML = '';
 
             if (note) {
                 note.innerText = fromCloud
                     ? '☁️ 資料來源：Google 雲端試算表即時排行（前 30 名）'
-                    : '💾 目前顯示本機瀏覽器紀錄（離線或 Google Apps Script 尚未完成授權）';
+                    : '💾 目前顯示本機瀏覽器紀錄（離線模式）';
             }
 
             if (!ranks || ranks.length === 0) {
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
-                td.colSpan = 8;
+                td.colSpan = 10;
                 td.className = 'p-6 text-center text-gray-400';
                 td.textContent = '目前尚無英雄紀錄，快來成為第一位校園守護者！';
                 tr.appendChild(td);
@@ -2599,16 +2820,21 @@
                     return td;
                 };
 
+                const classSeatLabel = r.gradeClass && r.gradeClass !== '訪客'
+                    ? `${r.gradeClass}${r.seatNo && r.seatNo !== '-' ? ' ' + r.seatNo + '號' : ''}`
+                    : (r.gradeClass || '訪客');
                 const modeLabel = r.mode === 'infinite' ? '🔥 無限' : '⚔️ 劇情';
                 const accVal = r.accuracy !== undefined && r.accuracy !== null ? `${r.accuracy}%` : '-';
 
                 tr.append(
                     makeCell(`${medal}${index + 1}`, `text-center whitespace-nowrap ${rankCls}`),
-                    makeCell(r.name || '無名勇者', `font-bold ${rankCls}`),
+                    makeCell(classSeatLabel, 'text-xs text-cyan-200 whitespace-nowrap'),
+                    makeCell(r.name || '無名勇者', `font-bold whitespace-nowrap ${rankCls}`),
                     makeCell(modeLabel, 'text-center text-xs whitespace-nowrap'),
                     makeCell(String(r.score ?? 0), 'text-right font-mono font-bold text-yellow-300 whitespace-nowrap'),
                     makeCell(String(r.wpm ?? 0), 'text-right font-mono text-cyan-300 whitespace-nowrap'),
                     makeCell(accVal, 'text-right font-mono text-green-400 whitespace-nowrap'),
+                    makeCell(r.stageProgress || '-', 'text-center text-xs text-blue-300 whitespace-nowrap'),
                     makeCell(r.rank || '-', 'text-xs text-gray-300 whitespace-nowrap'),
                     makeCell(r.date || '', 'text-center text-xs text-gray-400 whitespace-nowrap')
                 );
