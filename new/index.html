@@ -401,6 +401,7 @@
                         <p>⚔️ <span class="text-white font-bold">攻擊：</span> 依字母顏色辨識排別，盲打擊碎掉落符文</p>
                         <p>⚡ <span class="text-yellow-300 font-bold">狂熱：</span> 20 Combo 啟動聖光狂熱雙倍得分</p>
                         <p>⌨️ <span class="text-cyan-300 font-bold">引導：</span> 畫面底部提供即時手指鍵位對應光條</p>
+                        <p>🔒 <span class="text-amber-300 font-bold">魔王：</span> 擊中部位即鎖定 [TARGET]，打完該字才能換部位</p>
                     </div>
                     <div class="text-xs text-red-400 bg-red-950/40 p-2.5 rounded border border-red-500/30 w-full md:w-56 font-bold">
                         ☠️ 請切換為英數半形輸入法，按錯鍵會受到反噬傷害！
@@ -408,12 +409,15 @@
                 </div>
             </div>
 
-            <div class="flex flex-col md:flex-row gap-5">
-                <button onclick="startGame('story')" class="rpg-btn btn-story px-8 py-4 text-white font-bold rounded pixel-font text-base flex items-center justify-center gap-3 w-60 hover:scale-105 transition-transform">
+            <div class="flex flex-col md:flex-row gap-4 flex-wrap justify-center">
+                <button onclick="startGame('story')" class="rpg-btn btn-story px-7 py-4 text-white font-bold rounded pixel-font text-base flex items-center justify-center gap-3 w-56 hover:scale-105 transition-transform">
                     <span>⚔️</span> 劇情戰役
                 </button>
-                <button onclick="startGame('infinite')" class="rpg-btn btn-infinite px-8 py-4 text-white font-bold rounded pixel-font text-base flex items-center justify-center gap-3 w-60 hover:scale-105 transition-transform">
+                <button onclick="startGame('infinite')" class="rpg-btn btn-infinite px-7 py-4 text-white font-bold rounded pixel-font text-base flex items-center justify-center gap-3 w-56 hover:scale-105 transition-transform">
                     <span>🔥</span> 無限挑戰
+                </button>
+                <button onclick="openLeaderboard('all')" class="rpg-btn btn-green px-7 py-4 text-white font-bold rounded pixel-font text-base flex items-center justify-center gap-3 w-56 hover:scale-105 transition-transform">
+                    <span>🏆</span> 英雄榜
                 </button>
             </div>
             
@@ -597,12 +601,28 @@
                 </div>
             </div>
 
+            <!-- Submit to Online Leaderboard (Hidden on Print) -->
+            <div class="bg-yellow-500/10 border border-yellow-500/40 rounded-xl p-4 mb-5 no-print">
+                <div class="text-xs text-yellow-300 font-bold mb-2">🏆 登錄西寧校園守護者英雄榜（寫入雲端試算表）</div>
+                <div class="flex flex-col sm:flex-row gap-2 justify-center items-center">
+                    <input type="text" id="player-name-input" maxlength="12" placeholder="輸入班級姓名 (如 50101王小明)"
+                        class="px-3 py-2 rounded bg-gray-900 border border-yellow-500/50 text-white text-sm w-full sm:w-64 focus:outline-none focus:border-yellow-400">
+                    <button id="submit-score-btn" onclick="submitScore()" class="rpg-btn btn-infinite px-5 py-2 text-white font-bold rounded pixel-font text-xs whitespace-nowrap">
+                        📤 上傳戰績
+                    </button>
+                </div>
+                <div id="submit-status" class="text-[11px] text-gray-300 mt-2 hidden"></div>
+            </div>
+
             <!-- Action Buttons -->
-            <div class="flex flex-wrap gap-4 justify-center no-print">
-                <button onclick="location.reload()" class="rpg-btn btn-story px-6 py-3 text-white font-bold rounded pixel-font text-sm flex items-center gap-2">
+            <div class="flex flex-wrap gap-3 justify-center no-print">
+                <button onclick="location.reload()" class="rpg-btn btn-story px-5 py-3 text-white font-bold rounded pixel-font text-sm flex items-center gap-2">
                     <span>↺</span> 再次挑戰
                 </button>
-                <button onclick="window.print()" class="rpg-btn btn-green px-6 py-3 text-white font-bold rounded pixel-font text-sm flex items-center gap-2">
+                <button onclick="openLeaderboard(gameState.mode || 'all')" class="rpg-btn btn-infinite px-5 py-3 text-white font-bold rounded pixel-font text-sm flex items-center gap-2">
+                    <span>🏆</span> 查看英雄榜
+                </button>
+                <button onclick="window.print()" class="rpg-btn btn-green px-5 py-3 text-white font-bold rounded pixel-font text-sm flex items-center gap-2">
                     <span>🖨️</span> 列印 / 截圖證書
                 </button>
             </div>
@@ -610,9 +630,62 @@
         </div>
     </div>
 
+    <!-- UI Overlay: Online Leaderboard Modal -->
+    <div id="leaderboard-screen" class="ui-layer bg-black/95 z-[70] hidden pointer-events-auto overflow-y-auto p-4 backdrop-blur-lg">
+        <div class="bg-gradient-to-b from-gray-900 to-black p-6 md:p-8 rounded-2xl border-4 border-yellow-500/60 max-w-4xl w-full text-center shadow-[0_0_50px_rgba(234,179,8,0.3)] my-auto">
+            <div class="text-xs text-yellow-500 font-bold tracking-[0.3em] uppercase mb-1">Xining Campus Guardian • Hall of Fame</div>
+            <h2 class="text-3xl md:text-4xl font-black pixel-font text-yellow-400 mb-4 drop-shadow-md">🏆 西寧校園守護者英雄榜 🏆</h2>
+
+            <!-- Mode Filter Tabs -->
+            <div class="flex flex-wrap justify-center gap-2 mb-4">
+                <button id="lb-tab-all" onclick="switchLeaderboardMode('all')" class="px-4 py-1.5 rounded-full text-xs font-bold border border-yellow-400 bg-yellow-500 text-black cursor-pointer">
+                    🌟 全部戰績
+                </button>
+                <button id="lb-tab-story" onclick="switchLeaderboardMode('story')" class="px-4 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-gray-800 text-gray-300 hover:border-blue-400 cursor-pointer">
+                    ⚔️ 劇情戰役
+                </button>
+                <button id="lb-tab-infinite" onclick="switchLeaderboardMode('infinite')" class="px-4 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-gray-800 text-gray-300 hover:border-amber-400 cursor-pointer">
+                    🔥 無限挑戰
+                </button>
+                <button onclick="loadLeaderboardData()" class="px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-gray-800 text-cyan-300 hover:border-cyan-400 cursor-pointer">
+                    🔄 重新整理
+                </button>
+            </div>
+
+            <div id="leaderboard-source-note" class="text-[11px] text-gray-400 mb-3"></div>
+
+            <div class="overflow-x-auto max-h-[50vh] overflow-y-auto rounded-xl border border-white/10 bg-black/60 mb-5">
+                <table class="w-full text-xs md:text-sm text-left border-collapse">
+                    <thead class="sticky top-0 bg-gray-900 text-yellow-400 border-b border-yellow-500/30 whitespace-nowrap">
+                        <tr>
+                            <th class="p-3 text-center">排名</th>
+                            <th class="p-3">英雄</th>
+                            <th class="p-3 text-center">模式</th>
+                            <th class="p-3 text-right">總分</th>
+                            <th class="p-3 text-right">WPM</th>
+                            <th class="p-3 text-right">準確率</th>
+                            <th class="p-3">稱號</th>
+                            <th class="p-3 text-center">日期</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body" class="divide-y divide-white/10 text-gray-200">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-center gap-4">
+                <button onclick="closeLeaderboard()" class="rpg-btn btn-story px-6 py-3 text-white font-bold rounded pixel-font text-sm">
+                    返回
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- Version & Configuration ---
-        const GAME_VERSION = "V2.0 PRO";
+        const GAME_VERSION = "V2.1 PRO";
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmHfUWmFdiZK1GO5M48KC9vbuaj6khsIQNwzY6Ny0XIZcOUyr68vkUPHTv4nq2oE2S/exec';
+        const LOCAL_RANK_KEY = 'xining_guardian_ranks';
         document.getElementById('version-display').innerText = GAME_VERSION;
 
         // --- Key Row Color System ---
@@ -655,12 +728,17 @@
         }
         initKeyboardGuide();
 
+        const keyHighlightTimers = {};
         function highlightGuideKey(char, isHit = false) {
             const el = document.getElementById(`kb-key-${char}`);
             if (!el) return;
+            if (keyHighlightTimers[char]) {
+                clearTimeout(keyHighlightTimers[char]);
+            }
             el.classList.add('key-active');
-            setTimeout(() => {
+            keyHighlightTimers[char] = setTimeout(() => {
                 el.classList.remove('key-active');
+                keyHighlightTimers[char] = null;
             }, isHit ? 180 : 100);
         }
 
@@ -679,8 +757,11 @@
                     }
                 });
             } else {
-                // Highlight lowest 2 enemies
-                const activeEnemies = gameState.enemies.filter(e => !e.isDying && e.y > 0).slice(0, 3);
+                // Highlight lowest 3 enemies (closest to bottom)
+                const activeEnemies = gameState.enemies
+                    .filter(e => !e.isDying && e.y > 0)
+                    .sort((a, b) => b.y - a.y)
+                    .slice(0, 3);
                 activeEnemies.forEach(e => {
                     const el = document.getElementById(`kb-key-${e.char}`);
                     if (el) el.classList.add('key-target');
@@ -861,7 +942,7 @@
             initAudio();
             bgmStep = 0;
             bgmTimer = setInterval(() => {
-                if (isAudioMuted || !audioCtx || gameState.status !== 'PLAYING') return;
+                if (isAudioMuted || !audioCtx || gameState.status !== 'PLAYING' || isImePaused) return;
                 const now = audioCtx.currentTime;
                 
                 // Melody
@@ -1011,9 +1092,17 @@
         let animationId;
         let lastTime = 0;
         let isComposing = false;
+        let isImePaused = false;
+        let pauseStartedAt = 0;
+        let stageClearTimer = null;
+        let upgradeMenuTimer = null;
+        let currentLeaderboardMode = 'all';
+        let hasSubmittedScore = false;
+        let lastReportStats = null;
         
         let gameState = {
             status: 'START',
+            mode: 'story',
             currentStageIdx: 0,
             score: 0,
             enemies: [],
@@ -1021,6 +1110,7 @@
             projectiles: [],
             spawnTimer: 0,
             killsInStage: 0,
+            stageClearing: false,
             
             // Boss
             boss: null,
@@ -1048,6 +1138,7 @@
             // Educational Diagnosis Metrics
             startTime: 0,
             endTime: 0,
+            pausedDurationMs: 0,
             totalKeystrokes: 0,
             correctKeystrokes: 0,
             mistakeKeystrokes: 0,
@@ -1067,10 +1158,19 @@
             window.addEventListener('resize', resizeCanvas);
             window.addEventListener('keydown', handleInput);
             
-            // IME Composition Listeners
+            // IME Composition Listeners (only active during PLAYING, never on input fields)
             window.addEventListener('compositionstart', onCompositionStart);
             window.addEventListener('compositionend', onCompositionEnd);
             window.addEventListener('compositionupdate', onCompositionUpdate);
+
+            const nameInput = document.getElementById('player-name-input');
+            if (nameInput) {
+                nameInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !hasSubmittedScore) {
+                        submitScore();
+                    }
+                });
+            }
         };
 
         function resizeCanvas() {
@@ -1078,25 +1178,53 @@
             canvas.height = window.innerHeight;
         }
 
+        function beginPauseTimer() {
+            if (!pauseStartedAt) {
+                pauseStartedAt = performance.now();
+            }
+        }
+
+        function endPauseTimer() {
+            if (pauseStartedAt) {
+                gameState.pausedDurationMs += Math.max(0, performance.now() - pauseStartedAt);
+                pauseStartedAt = 0;
+            }
+        }
+
         // --- IME Handlers ---
         function onCompositionStart(e) {
+            if (gameState.status !== 'PLAYING') return;
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
             isComposing = true;
             showImeModal(true);
         }
         function onCompositionUpdate(e) {
+            if (gameState.status !== 'PLAYING') return;
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
             isComposing = true;
             showImeModal(true);
         }
         function onCompositionEnd(e) {
             isComposing = false;
-            showImeModal(false);
+            if (gameState.status === 'PLAYING') {
+                showImeModal(false);
+            }
         }
         function showImeModal(show) {
             const modal = document.getElementById('ime-modal');
             if (show) {
+                if (!isImePaused && gameState.status === 'PLAYING') {
+                    isImePaused = true;
+                    beginPauseTimer();
+                }
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
             } else {
+                if (isImePaused) {
+                    isImePaused = false;
+                    endPauseTimer();
+                    lastTime = performance.now();
+                }
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             }
@@ -1113,12 +1241,13 @@
 
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('report-card-container').classList.add('hidden');
+            document.getElementById('leaderboard-screen').classList.add('hidden');
             document.getElementById('hud').classList.remove('hidden');
             document.getElementById('hud').classList.add('flex');
             document.getElementById('keyboard-guide-bar').classList.remove('hidden');
             document.getElementById('keyboard-guide-bar').classList.add('flex');
             
-            resetGame();
+            resetGame(mode);
             
             if (mode === 'infinite') {
                 startStage(4);
@@ -1129,12 +1258,23 @@
             gameState.status = 'PLAYING';
             gameState.startTime = performance.now();
             lastTime = performance.now();
-            loop(lastTime);
+            if (animationId) cancelAnimationFrame(animationId);
+            animationId = requestAnimationFrame(loop);
         }
 
-        function resetGame() {
+        function resetGame(mode = 'story') {
+            if (stageClearTimer) { clearTimeout(stageClearTimer); stageClearTimer = null; }
+            if (upgradeMenuTimer) { clearTimeout(upgradeMenuTimer); upgradeMenuTimer = null; }
+            isComposing = false;
+            isImePaused = false;
+            pauseStartedAt = 0;
+            hasSubmittedScore = false;
+            lastReportStats = null;
+            showImeModal(false);
+
             gameState = {
                 status: 'START',
+                mode: mode === 'infinite' ? 'infinite' : 'story',
                 currentStageIdx: 0,
                 score: 0,
                 enemies: [],
@@ -1142,6 +1282,7 @@
                 projectiles: [],
                 spawnTimer: 0,
                 killsInStage: 0,
+                stageClearing: false,
                 boss: null,
                 bossWaveCount: 0,
                 bossLockedPartId: null,
@@ -1159,6 +1300,7 @@
                 frostTimer: 0,
                 startTime: performance.now(),
                 endTime: 0,
+                pausedDurationMs: 0,
                 totalKeystrokes: 0,
                 correctKeystrokes: 0,
                 mistakeKeystrokes: 0,
@@ -1171,6 +1313,8 @@
             document.getElementById('god-mode-indicator').style.display = 'none';
             document.getElementById('fever-badge').classList.add('hidden');
             document.getElementById('combo-badge').classList.add('hidden');
+            document.getElementById('caps-badge').classList.add('hidden');
+            document.getElementById('shield-indicator').classList.add('hidden');
             document.getElementById('game-canvas').classList.remove('fever-active');
             inputHistory = '';
             updateHUD();
@@ -1179,6 +1323,7 @@
         function startStage(idx) {
             gameState.currentStageIdx = idx;
             gameState.killsInStage = 0;
+            gameState.stageClearing = false;
             gameState.enemies = [];
             gameState.projectiles = [];
             gameState.boss = null;
@@ -1196,10 +1341,13 @@
         function loop(timestamp) {
             if (gameState.status !== 'PLAYING') return;
             
-            const dt = timestamp - lastTime;
+            const dt = Math.min(Math.max(timestamp - lastTime, 0), 100);
             lastTime = timestamp;
 
-            update(dt);
+            if (!isImePaused) {
+                update(dt);
+            }
+            if (gameState.status !== 'PLAYING') return;
             draw();
 
             animationId = requestAnimationFrame(loop);
@@ -1208,6 +1356,7 @@
         // --- Game Update Logic ---
         function update(dt) {
             const stage = LEVELS[gameState.currentStageIdx];
+            const frameScale = dt / 16.6667;
 
             if (gameState.invincibleTimer > 0) {
                 gameState.invincibleTimer -= dt;
@@ -1226,7 +1375,7 @@
                 }
             }
 
-            if (gameState.autoPlay) {
+            if (gameState.autoPlay && !gameState.stageClearing) {
                 gameState.autoPlayTimer -= dt;
                 if (gameState.autoPlayTimer <= 0) {
                     performAutoAttack();
@@ -1245,6 +1394,8 @@
                     shakeScreen();
                 }
 
+                if (gameState.status !== 'PLAYING') return;
+
                 const allDestroyed = gameState.boss.parts.every(p => p.isDestroyed);
                 
                 if (allDestroyed) {
@@ -1256,9 +1407,14 @@
                     gameState.score += bossScore;
                     gameState.boss = null;
                     gameState.bossLockedPartId = null;
+                    gameState.stageClearing = true;
                     document.getElementById('boss-hud').classList.remove('visible');
+                    updateHUD();
                     
-                    setTimeout(() => {
+                    stageClearTimer = setTimeout(() => {
+                        stageClearTimer = null;
+                        if (gameState.status !== 'PLAYING') return;
+                        gameState.stageClearing = false;
                         if (stage.isInfinite) {
                             levelComplete("無限波次突破!");
                         } else if (stage.isStoryEnd) {
@@ -1272,24 +1428,22 @@
                 }
 
                 for (let i = gameState.enemies.length - 1; i >= 0; i--) {
-                    gameState.enemies[i].y += 12; 
+                    gameState.enemies[i].y += 12 * frameScale; 
                     if (gameState.enemies[i].y > canvas.height) gameState.enemies.splice(i, 1);
                 }
 
-            } else {
+            } else if (!gameState.stageClearing) {
                 if (stage.isInfinite) {
                     const killsPerBoss = 30;
                     const dynamicSpawnRate = Math.max(380, stage.spawnRate - (gameState.killsInStage * 12));
                     const speedModifier = 1 + Math.floor(gameState.killsInStage / 10) * 0.05;
-                    const currentBossWave = Math.floor(gameState.killsInStage / killsPerBoss);
+                    const nextBossAt = (gameState.bossWaveCount + 1) * killsPerBoss;
                     
-                    if (gameState.killsInStage > 0 && 
-                        gameState.killsInStage % killsPerBoss === 0 && 
-                        gameState.bossWaveCount < currentBossWave &&
-                        gameState.enemies.length === 0) {
-                        
-                        gameState.bossWaveCount = currentBossWave;
-                        spawnBoss(stage, true); 
+                    if (gameState.killsInStage >= nextBossAt) {
+                        if (gameState.enemies.length === 0) {
+                            gameState.bossWaveCount++;
+                            spawnBoss(stage, true); 
+                        }
                     } else {
                         gameState.spawnTimer -= dt;
                         if (gameState.spawnTimer <= 0) {
@@ -1329,11 +1483,12 @@
                 }
             }
 
-            // Update Projectiles
+            // Update Projectiles (fixed Y lerp direction & frame-rate normalized)
+            const lerpAlpha = 1 - Math.pow(0.7, frameScale);
             for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
                 let p = gameState.projectiles[i];
-                p.x = lerp(p.x, p.targetX, 0.3);
-                p.y = lerp(p.targetY, p.y, 0.3);
+                p.x = lerp(p.x, p.targetX, lerpAlpha);
+                p.y = lerp(p.y, p.targetY, lerpAlpha);
                 
                 const dist = Math.hypot(p.x - p.targetX, p.y - p.targetY);
                 if (dist < 25) {
@@ -1346,7 +1501,8 @@
                             if (p.enemyRef.rune) {
                                 triggerRuneEffect(p.enemyRef.rune, p.enemyRef.x, p.enemyRef.y);
                             }
-                            gameState.enemies.splice(idx, 1);
+                            const removeIdx = gameState.enemies.indexOf(p.enemyRef);
+                            if (removeIdx !== -1) gameState.enemies.splice(removeIdx, 1);
                         }
                     }
 
@@ -1357,8 +1513,8 @@
             // Update Particles
             for (let i = gameState.particles.length - 1; i >= 0; i--) {
                 let p = gameState.particles[i];
-                p.x += p.vx;
-                p.y += p.vy;
+                p.x += p.vx * frameScale;
+                p.y += p.vy * frameScale;
                 p.life -= dt;
                 if (p.life <= 0) gameState.particles.splice(i, 1);
             }
@@ -1377,12 +1533,18 @@
             } else if (runeType === 'bomb') {
                 createFloatingText(x, y, "💣 全屏聖光爆炎！", "#f87171", 24);
                 shakeScreen();
+                let aliveKills = 0;
                 for (let i = gameState.enemies.length - 1; i >= 0; i--) {
-                    createParticles(gameState.enemies[i].x, gameState.enemies[i].y, '#f87171');
-                    gameState.score += 50;
+                    const enemy = gameState.enemies[i];
+                    createParticles(enemy.x, enemy.y, '#f87171');
+                    if (!enemy.isDying) {
+                        aliveKills++;
+                        gameState.score += 50;
+                    }
                 }
-                gameState.killsInStage += gameState.enemies.length;
+                gameState.killsInStage += aliveKills;
                 gameState.enemies = [];
+                updateHUD();
             } else if (runeType === 'potion') {
                 gameState.hp = Math.min(gameState.maxHp, gameState.hp + 20);
                 createFloatingText(x, y, "💖 聖泉治癒 +20 HP！", "#4ade80", 24);
@@ -1489,19 +1651,42 @@
             handleInput({ key: key, preventDefault: () => {} });
         }
 
+        function isCheatEntryInProgress(hist) {
+            for (const code of [CHEAT_CODE_AUTO, CHEAT_CODE_GOD]) {
+                for (let len = 3; len <= hist.length; len++) {
+                    if (code.startsWith(hist.slice(-len))) return true;
+                }
+            }
+            return false;
+        }
+
         function handleInput(e) {
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+
             if (e.getModifierState) {
                 const capsOn = e.getModifierState('CapsLock');
                 const capsBadge = document.getElementById('caps-badge');
-                if (capsBadge) capsBadge.style.display = capsOn ? 'inline-block' : 'none';
+                if (capsBadge) capsBadge.classList.toggle('hidden', !capsOn);
             }
 
-            if (isComposing || e.key === 'Process') {
-                showImeModal(true);
+            if (e.isComposing || e.key === 'Process') {
+                if (gameState.status === 'PLAYING') showImeModal(true);
                 return;
             }
 
-            if (e.key && e.key.length === 1) {
+            if (gameState.status !== 'PLAYING') return;
+
+            if (isImePaused && e.key && e.key.length === 1 && /[a-zA-Z]/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                dismissImeModal();
+            } else if (isImePaused || isComposing) {
+                if (isComposing && !e.isComposing && e.key && e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
+                    isComposing = false;
+                } else {
+                    return;
+                }
+            }
+
+            if (e.key && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
                 inputHistory += e.key;
                 if (inputHistory.length > 50) inputHistory = inputHistory.slice(-50);
                 
@@ -1516,10 +1701,8 @@
                     return; 
                 }
             }
-            
-            if (gameState.status !== 'PLAYING') return;
 
-            if (!e.key || e.key.length > 1) return;
+            if (!e.key || e.key.length > 1 || e.ctrlKey || e.metaKey || e.altKey) return;
             
             const key = e.key.toUpperCase();
             if (!/[A-Z]/.test(key)) return;
@@ -1573,9 +1756,10 @@
                         createFloatingText(targetX, targetY, `${hitPart.label} 破壞!`, '#fff', 22);
                         gameState.score += Math.round(500 * gameState.scoreMult * (gameState.feverActive ? 2 : 1));
                         shakeScreen();
+                        updateHUD();
                     }
                     updateBossHUD();
-                } else {
+                } else if (!isCheatEntryInProgress(inputHistory)) {
                     registerMistake(key, "MISS -1");
                 }
                 return;
@@ -1616,7 +1800,7 @@
                 gameState.score += earnedScore;
                 gameState.killsInStage++;
                 updateHUD();
-            } else {
+            } else if (!isCheatEntryInProgress(inputHistory)) {
                 registerMistake(key);
             }
         }
@@ -1686,15 +1870,25 @@
         }
 
         function takeDamage(amount) {
+            if (amount >= 10 && gameState.invincibleTimer > 0) return;
+
             if (gameState.godMode) {
+                if (amount >= 10) {
+                    gameState.invincibleTimer = 400;
+                    if (gameState.boss && gameState.boss.y > canvas.height - 180) {
+                        gameState.boss.y = Math.max(120, canvas.height - 230);
+                    }
+                }
                 createFloatingText(canvas.width/2, canvas.height/2, "INVINCIBLE!", "#ffd700", 28);
                 return;
             }
 
-            if (amount >= 10 && gameState.invincibleTimer > 0) return;
-
             if (gameState.shield && amount >= 5) {
                 gameState.shield = false;
+                gameState.invincibleTimer = 400;
+                if (gameState.boss && gameState.boss.y > canvas.height - 180) {
+                    gameState.boss.y = Math.max(120, canvas.height - 230);
+                }
                 playSound('powerup');
                 createFloatingText(canvas.width/2, canvas.height/2, "SHIELD BLOCKED!", "#60a5fa", 28);
                 updateHUD();
@@ -1709,7 +1903,9 @@
             gameState.hp -= amount;
             if (gameState.hp <= 0) {
                 gameState.hp = 0;
+                updateHUD();
                 gameOver();
+                return;
             }
             updateHUD();
         }
@@ -1729,7 +1925,9 @@
         }
 
         function levelComplete(customTitle) {
+            if (gameState.status !== 'PLAYING') return;
             gameState.status = 'UPGRADE';
+            beginPauseTimer();
             playSound('powerup');
             
             const notify = document.getElementById('level-notify');
@@ -1745,9 +1943,12 @@
 
             notify.classList.remove('hidden');
             
-            setTimeout(() => {
+            upgradeMenuTimer = setTimeout(() => {
+                upgradeMenuTimer = null;
                 notify.classList.add('hidden');
-                showUpgradeMenu();
+                if (gameState.status === 'UPGRADE') {
+                    showUpgradeMenu();
+                }
             }, 1800);
         }
 
@@ -1797,18 +1998,19 @@
 
             document.getElementById('upgrade-menu').classList.add('hidden');
             document.getElementById('upgrade-menu').classList.remove('flex');
+            endPauseTimer();
             
             if (LEVELS[gameState.currentStageIdx].isInfinite) {
                 gameState.status = 'PLAYING';
                 updateHUD();
                 lastTime = performance.now();
-                requestAnimationFrame(loop);
+                animationId = requestAnimationFrame(loop);
             } else {
                 startStage(gameState.currentStageIdx + 1);
                 gameState.status = 'PLAYING';
                 updateHUD();
                 lastTime = performance.now();
-                requestAnimationFrame(loop);
+                animationId = requestAnimationFrame(loop);
             }
         }
 
@@ -2034,14 +2236,14 @@
         }
 
         function updateHUD() {
-            const hpPercent = (gameState.hp / gameState.maxHp) * 100;
+            const hpPercent = Math.max(0, Math.min(100, (gameState.hp / gameState.maxHp) * 100));
             const bar = document.getElementById('hp-bar');
             bar.style.width = hpPercent + '%';
             document.getElementById('hp-text').innerText = `${Math.ceil(gameState.hp)}/${gameState.maxHp}`;
             
             const shieldIndicator = document.getElementById('shield-indicator');
             if (shieldIndicator) {
-                shieldIndicator.style.display = gameState.shield ? 'inline-block' : 'none';
+                shieldIndicator.classList.toggle('hidden', !gameState.shield);
             }
 
             const stage = LEVELS[gameState.currentStageIdx];
@@ -2085,25 +2287,46 @@
             setTimeout(() => document.body.classList.remove('shake'), 400);
         }
 
-        function gameOver() {
-            gameState.status = 'GAMEOVER';
+        function cleanupOverlaysForEnd() {
+            if (stageClearTimer) { clearTimeout(stageClearTimer); stageClearTimer = null; }
+            if (upgradeMenuTimer) { clearTimeout(upgradeMenuTimer); upgradeMenuTimer = null; }
+            if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
+            gameState.boss = null;
+            gameState.stageClearing = false;
+            isComposing = false;
+            isImePaused = false;
+            endPauseTimer();
             stopBGM();
+            document.getElementById('ime-modal').classList.add('hidden');
+            document.getElementById('ime-modal').classList.remove('flex');
+            document.getElementById('boss-hud').classList.remove('visible');
             document.getElementById('hud').classList.add('hidden');
             document.getElementById('keyboard-guide-bar').classList.add('hidden');
+            document.getElementById('level-notify').classList.add('hidden');
+            document.getElementById('upgrade-menu').classList.add('hidden');
+            document.getElementById('auto-mode-indicator').style.display = 'none';
+            document.getElementById('god-mode-indicator').style.display = 'none';
+            document.getElementById('game-canvas').classList.remove('fever-active');
+        }
+
+        function gameOver() {
+            if (gameState.status === 'GAMEOVER' || gameState.status === 'VICTORY') return;
+            gameState.status = 'GAMEOVER';
+            cleanupOverlaysForEnd();
             renderReportCard(false);
         }
 
         function victory() {
+            if (gameState.status === 'GAMEOVER' || gameState.status === 'VICTORY') return;
             gameState.status = 'VICTORY';
-            stopBGM();
-            document.getElementById('hud').classList.add('hidden');
-            document.getElementById('keyboard-guide-bar').classList.add('hidden');
+            cleanupOverlaysForEnd();
             renderReportCard(true);
         }
 
         function renderReportCard(isVictory) {
             gameState.endTime = performance.now();
-            const durationSec = Math.max(1, Math.round((gameState.endTime - gameState.startTime) / 1000));
+            const activeMs = Math.max(1000, gameState.endTime - gameState.startTime - gameState.pausedDurationMs);
+            const durationSec = Math.max(1, Math.round(activeMs / 1000));
             const durationMin = durationSec / 60;
 
             const titleEl = document.getElementById('result-title');
@@ -2152,9 +2375,245 @@
                 document.getElementById('stat-top-mistakes').className = 'font-mono text-yellow-300 font-bold text-sm';
             }
 
+            // Prepare leaderboard submission state
+            lastReportStats = {
+                mode: gameState.mode || 'story',
+                score: gameState.score,
+                wpm: wpm,
+                accuracy: accuracy,
+                maxCombo: gameState.maxCombo,
+                rank: rank
+            };
+            hasSubmittedScore = false;
+            const nameInput = document.getElementById('player-name-input');
+            const submitBtn = document.getElementById('submit-score-btn');
+            const submitStatus = document.getElementById('submit-status');
+            if (nameInput) {
+                nameInput.value = localStorage.getItem('xining_guardian_last_name') || '';
+                nameInput.disabled = false;
+            }
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = '📤 上傳戰績';
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            if (submitStatus) {
+                submitStatus.classList.add('hidden');
+                submitStatus.innerText = '';
+            }
+
             const container = document.getElementById('report-card-container');
             container.classList.remove('hidden');
             container.classList.add('flex');
+        }
+
+        // --- Online Leaderboard (Google Sheets GAS + localStorage fallback) ---
+        function getLocalRanks(mode = 'all') {
+            try {
+                const list = JSON.parse(localStorage.getItem(LOCAL_RANK_KEY) || '[]');
+                if (!Array.isArray(list)) return [];
+                const filtered = mode === 'all' ? list : list.filter(r => r.mode === mode);
+                return filtered.sort((a, b) => (b.score - a.score) || (b.wpm - a.wpm)).slice(0, 30);
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveLocalRank(entry) {
+            try {
+                const list = JSON.parse(localStorage.getItem(LOCAL_RANK_KEY) || '[]');
+                const safeList = Array.isArray(list) ? list : [];
+                safeList.push(entry);
+                safeList.sort((a, b) => (b.score - a.score) || (b.wpm - a.wpm));
+                if (safeList.length > 30) safeList.length = 30;
+                localStorage.setItem(LOCAL_RANK_KEY, JSON.stringify(safeList));
+            } catch (e) {}
+        }
+
+        async function fetchLeaderboard(mode = 'all') {
+            if (!GOOGLE_SCRIPT_URL) {
+                return { ranks: getLocalRanks(mode), fromCloud: false };
+            }
+            try {
+                const sep = GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?';
+                const response = await fetch(`${GOOGLE_SCRIPT_URL}${sep}mode=${encodeURIComponent(mode)}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                const ranks = Array.isArray(data) ? data : (Array.isArray(data.ranks) ? data.ranks : null);
+                if (!ranks) throw new Error('Invalid response');
+                return { ranks, fromCloud: true };
+            } catch (e) {
+                console.warn('Google Sheet 連線失敗，切換至本機排行榜模式', e);
+                return { ranks: getLocalRanks(mode), fromCloud: false };
+            }
+        }
+
+        async function submitScoreToGoogleSheet(entry) {
+            saveLocalRank(entry);
+            if (!GOOGLE_SCRIPT_URL) return false;
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(entry),
+                    headers: { 'Content-Type': 'text/plain' },
+                    redirect: 'follow'
+                });
+                if (!res.ok) return false;
+                const data = await res.json();
+                return Boolean(data && data.ok !== false);
+            } catch (e) {
+                console.error('Google Sheet 上傳失敗', e);
+                return false;
+            }
+        }
+
+        async function submitScore() {
+            if (hasSubmittedScore || !lastReportStats) return;
+            const nameInput = document.getElementById('player-name-input');
+            const submitBtn = document.getElementById('submit-score-btn');
+            const submitStatus = document.getElementById('submit-status');
+
+            const rawName = nameInput ? nameInput.value.trim() : '';
+            const name = rawName || '無名勇者';
+            if (rawName) {
+                try { localStorage.setItem('xining_guardian_last_name', rawName); } catch (e) {}
+            }
+
+            const date = new Date().toLocaleString('zh-TW', {
+                timeZone: 'Asia/Taipei',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+
+            const entry = {
+                name: name,
+                mode: lastReportStats.mode,
+                score: lastReportStats.score,
+                wpm: lastReportStats.wpm,
+                accuracy: lastReportStats.accuracy,
+                maxCombo: lastReportStats.maxCombo,
+                rank: lastReportStats.rank,
+                date: date
+            };
+
+            hasSubmittedScore = true;
+            if (nameInput) nameInput.disabled = true;
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = '上傳中...';
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+            const cloudOk = await submitScoreToGoogleSheet(entry);
+
+            if (submitBtn) submitBtn.innerText = '✅ 已登錄';
+            if (submitStatus) {
+                submitStatus.classList.remove('hidden');
+                submitStatus.innerText = cloudOk
+                    ? '✅ 戰績已成功寫入《西寧校園守護者英打英雄榜》雲端試算表！'
+                    : '⚠️ 已暫存於本機紀錄（雲端服務尚未授權或目前離線）。';
+                submitStatus.className = cloudOk
+                    ? 'text-[11px] text-green-400 mt-2 font-bold'
+                    : 'text-[11px] text-amber-300 mt-2 font-bold';
+            }
+
+            openLeaderboard(entry.mode);
+        }
+
+        function updateLeaderboardTabStyles() {
+            ['all', 'story', 'infinite'].forEach(m => {
+                const btn = document.getElementById(`lb-tab-${m}`);
+                if (!btn) return;
+                if (m === currentLeaderboardMode) {
+                    btn.className = 'px-4 py-1.5 rounded-full text-xs font-bold border border-yellow-400 bg-yellow-500 text-black cursor-pointer';
+                } else {
+                    btn.className = 'px-4 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-gray-800 text-gray-300 hover:border-yellow-400 cursor-pointer';
+                }
+            });
+        }
+
+        function switchLeaderboardMode(mode) {
+            currentLeaderboardMode = mode;
+            updateLeaderboardTabStyles();
+            loadLeaderboardData();
+        }
+
+        function openLeaderboard(mode = 'all') {
+            currentLeaderboardMode = ['story', 'infinite'].includes(mode) ? mode : 'all';
+            updateLeaderboardTabStyles();
+            const screen = document.getElementById('leaderboard-screen');
+            screen.classList.remove('hidden');
+            screen.classList.add('flex');
+            loadLeaderboardData();
+        }
+
+        function closeLeaderboard() {
+            const screen = document.getElementById('leaderboard-screen');
+            screen.classList.add('hidden');
+            screen.classList.remove('flex');
+        }
+
+        async function loadLeaderboardData() {
+            const tbody = document.getElementById('leaderboard-body');
+            const note = document.getElementById('leaderboard-source-note');
+            if (!tbody) return;
+
+            tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-gray-400">正在載入英雄榜...</td></tr>';
+            if (note) note.innerText = '';
+
+            const { ranks, fromCloud } = await fetchLeaderboard(currentLeaderboardMode);
+            tbody.innerHTML = '';
+
+            if (note) {
+                note.innerText = fromCloud
+                    ? '☁️ 資料來源：Google 雲端試算表即時排行（前 30 名）'
+                    : '💾 目前顯示本機瀏覽器紀錄（離線或 Google Apps Script 尚未完成授權）';
+            }
+
+            if (!ranks || ranks.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 8;
+                td.className = 'p-6 text-center text-gray-400';
+                td.textContent = '目前尚無英雄紀錄，快來成為第一位校園守護者！';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+                return;
+            }
+
+            ranks.forEach((r, index) => {
+                const tr = document.createElement('tr');
+                tr.className = index < 3 ? 'bg-yellow-500/5' : 'hover:bg-white/5';
+
+                let medal = '';
+                let rankCls = 'text-gray-300';
+                if (index === 0) { medal = '🥇 '; rankCls = 'text-yellow-400 font-bold'; }
+                else if (index === 1) { medal = '🥈 '; rankCls = 'text-gray-200 font-bold'; }
+                else if (index === 2) { medal = '🥉 '; rankCls = 'text-amber-500 font-bold'; }
+
+                const makeCell = (text, cls) => {
+                    const td = document.createElement('td');
+                    td.className = `p-3 ${cls || ''}`.trim();
+                    td.textContent = text;
+                    return td;
+                };
+
+                const modeLabel = r.mode === 'infinite' ? '🔥 無限' : '⚔️ 劇情';
+                const accVal = r.accuracy !== undefined && r.accuracy !== null ? `${r.accuracy}%` : '-';
+
+                tr.append(
+                    makeCell(`${medal}${index + 1}`, `text-center whitespace-nowrap ${rankCls}`),
+                    makeCell(r.name || '無名勇者', `font-bold ${rankCls}`),
+                    makeCell(modeLabel, 'text-center text-xs whitespace-nowrap'),
+                    makeCell(String(r.score ?? 0), 'text-right font-mono font-bold text-yellow-300 whitespace-nowrap'),
+                    makeCell(String(r.wpm ?? 0), 'text-right font-mono text-cyan-300 whitespace-nowrap'),
+                    makeCell(accVal, 'text-right font-mono text-green-400 whitespace-nowrap'),
+                    makeCell(r.rank || '-', 'text-xs text-gray-300 whitespace-nowrap'),
+                    makeCell(r.date || '', 'text-center text-xs text-gray-400 whitespace-nowrap')
+                );
+                tbody.appendChild(tr);
+            });
         }
 
         function lerp(start, end, t) {
